@@ -22,10 +22,29 @@ feed** (partner API, licensed feed, or agreed export) set via env:
    feed / official export. Stubs stay stubs.
 3. **Rate-limit and identify.** Any HTTP fetching uses conservative delays and
    a real UA; ingestion runs as a scheduled job, never inside the visitor's browser.
-4. **Dedupe by default.** Ghost/duplicate listings (same unit reposted) collapse
-   via `dedupe()` — the biggest trust problem in PH property listing aggregators.
+4. **Dedupe by default.** Ghost/duplicate listings collapse — same-source
+   reposts via source-internal ids, cross-source reposts via the fingerprint in
+   `contract.ts` (city|tenure|type|beds|sqm band ±12%|price band ±8%; the
+   richer/verified row wins). The biggest trust problem in PH property
+   aggregators.
 5. **Normalize the math.** Price-per-sqm is computed centrally (`perSqm()`) so
    every source is comparable. Never trust the portal's own ₱/m² figures.
+
+## Pipeline details
+
+- `normalize()` (in `contract.ts`) is the gate: it parses the extended
+  `RawListing` (price ranges, dues, floor, year built, turnover, rent advance/
+  deposit, agent, listed-at), computes the price midpoint, validates the price
+  against tenure×type bounds (`src/lib/price.ts#PRICE_BOUNDS`), geocodes rows
+  without lat/lng from `geo.ts` city centres (`geoPrecision: "city"`) and
+  **drops** rows with an explicit reason (logged per adapter): missing
+  url/title, missing price, missing sqm, invalid price, unmappable city.
+- `dedupe()` runs **once on the merged set** (cross-source), keeping the
+  highest-quality row (verified > linked > addressed > described).
+- `flagOutliers()` marks rows whose price is statistically far from their
+  city×tenure×type cohort (IQR fence 1.6, MAD fallback ×4×1.4826, cohorts
+  under 8 rows skipped). Flagged rows are **shown** with an amber ⚠ chip and
+  excluded from medians — never silently deleted.
 
 ## Roadmap
 

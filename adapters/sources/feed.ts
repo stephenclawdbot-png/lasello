@@ -1,4 +1,4 @@
-import type { RawListing } from "../contract";
+import type { Furnished, ListingType, RawListing } from "../contract";
 import type { SourceKey } from "../../src/data/sources";
 
 /**
@@ -70,6 +70,36 @@ function str(v: unknown): string | undefined {
   return typeof v === "string" && v.trim() ? v.trim() : undefined;
 }
 
+function strArr(v: unknown): string[] | undefined {
+  return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string" && x.trim() !== "") : undefined;
+}
+
+function furnishedOf(v: unknown): Furnished | undefined {
+  const f = typeof v === "string" ? v.trim().toLowerCase() : "";
+  if (!f) return undefined;
+  if (f.includes("fully") || f === "furnished") return "fully";
+  if (f.includes("semi") || f === "partly") return "semi";
+  if (f.includes("un") || f === "bare" || f === "none") return "bare";
+  return undefined;
+}
+
+function turnoverOf(v: unknown): "rfo" | "preselling" | undefined {
+  const t = typeof v === "string" ? v.trim().toLowerCase() : "";
+  if (!t) return undefined;
+  if (t.includes("rfo") || t.includes("ready")) return "rfo";
+  if (t.includes("pre") || t.includes("under construction")) return "preselling";
+  return undefined;
+}
+
+function brokerOf(v: unknown): "owner" | "broker" | "developer" | undefined {
+  const b = typeof v === "string" ? v.trim().toLowerCase() : "";
+  if (!b) return undefined;
+  if (b.startsWith("own")) return "owner";
+  if (b.startsWith("dev")) return "developer";
+  if (b.startsWith("brok") || b.startsWith("agent")) return "broker";
+  return undefined;
+}
+
 export function defaultMapRow(row: Record<string, unknown>, source: SourceKey): RawListing | null {
   const externalId = str(row.externalId ?? row.id ?? row.listing_id);
   const url = str(row.url ?? row.link ?? row.permalink);
@@ -77,6 +107,21 @@ export function defaultMapRow(row: Record<string, unknown>, source: SourceKey): 
   if (!externalId || !url || !title) return null;
   const tenureRaw = str(row.tenure ?? row.offer_type)?.toLowerCase();
   const typeRaw = str(row.type ?? row.property_type)?.toLowerCase();
+  const type: ListingType | undefined =
+    typeRaw === "condo" || typeRaw === "condominium" || typeRaw === "apartment"
+      ? "condo"
+      : typeRaw === "house" || typeRaw === "townhouse" || typeRaw === "villa"
+        ? "house"
+        : typeRaw === "lot"
+          ? "lot"
+          : typeRaw === "land" || typeRaw === "farm"
+            ? "land"
+            : undefined;
+  // Area: portals expose floor area and/or lot area. Structures want floor
+  // area when present; lots/land want lot area.
+  const floorArea = num(row.sqm ?? row.floor_area);
+  const lotArea = num(row.lot_area ?? row.land_area);
+  const sqm = type === "lot" || type === "land" ? lotArea ?? floorArea : floorArea ?? lotArea;
   return {
     externalId,
     source,
@@ -86,22 +131,27 @@ export function defaultMapRow(row: Record<string, unknown>, source: SourceKey): 
     region: str(row.region ?? row.province),
     lat: num(row.lat ?? row.latitude),
     lng: num(row.lng ?? row.longitude),
-    type:
-      typeRaw === "condo" || typeRaw === "condominium" || typeRaw === "apartment"
-        ? "condo"
-        : typeRaw === "house" || typeRaw === "townhouse" || typeRaw === "villa"
-          ? "house"
-          : typeRaw === "lot"
-            ? "lot"
-            : typeRaw === "land" || typeRaw === "farm"
-              ? "land"
-              : undefined,
+    type,
     tenure: tenureRaw === "rent" || tenureRaw === "for-rent" ? "rent" : tenureRaw ? "sale" : undefined,
     price: num(row.price ?? row.price_php),
-    sqm: num(row.sqm ?? row.floor_area ?? row.lot_area),
+    priceMin: num(row.priceMin ?? row.price_min ?? row.price_from),
+    priceMax: num(row.priceMax ?? row.price_max ?? row.price_to),
+    sqm,
     beds: num(row.beds ?? row.bedrooms),
     baths: num(row.baths ?? row.bathrooms),
     address: str(row.address),
+    parking: num(row.parking ?? row.parking_slots ?? row.garage),
+    furnished: furnishedOf(row.furnished ?? row.furnishing),
+    features: strArr(row.features ?? row.amenities),
+    dues: num(row.dues ?? row.association_dues ?? row.hoa_dues ?? row.condo_dues),
+    floor: num(row.floor ?? row.floor_number ?? row.unit_floor),
+    yearBuilt: num(row.yearBuilt ?? row.year_built),
+    turnover: turnoverOf(row.turnover ?? row.availability),
+    advanceMonths: num(row.advanceMonths ?? row.advance_months),
+    depositMonths: num(row.depositMonths ?? row.deposit_months),
+    agent: str(row.agent ?? row.listed_by_name),
+    brokerType: brokerOf(row.brokerType ?? row.listed_by),
+    listedAt: str(row.listedAt ?? row.published_at ?? row.date_posted),
     description: str(row.description),
     firstSeen: str(row.firstSeen ?? row.created_at ?? row.first_seen),
     verified: row.verified === true,

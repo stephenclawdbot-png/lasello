@@ -1,4 +1,5 @@
 import type { Listing } from "../data/listings";
+import { validatePrice } from "./price";
 
 export function percentileRank(values: number[], v: number): number {
   if (values.length === 0) return 0.5;
@@ -39,11 +40,13 @@ export function fmtPsqm(n: number): string {
   return `₱${Math.round(n).toLocaleString("en-PH")}/m²`;
 }
 
-/** Median price-per-sqm per city, split by tenure. Cities need >=2 listings to matter. */
+/** Median price-per-sqm per city, split by tenure, outliers and invalid prices excluded.
+ *  Cities need >=2 clean listings to matter. */
 export function cityMedians(listings: Listing[]): Map<string, { sale: number; rent: number }> {
   const map = new Map<string, { sale: number; rent: number }>();
   const byCity = new Map<string, Listing[]>();
   for (const l of listings) {
+    if (l.outlier || validatePrice(l) !== "ok") continue;
     const arr = byCity.get(l.city) ?? [];
     arr.push(l);
     byCity.set(l.city, arr);

@@ -77,7 +77,11 @@ public/data/listings.json  the runtime feed the site polls.
 `Listing` = id, name, city, region, address, lat/lng, type
 (condo/house/lot/land), tenure (sale/rent), price (PHP total, or ₱/mo for
 rent), sqm, beds, baths, parking, furnished, description, features[], source,
-freshDays, verified.
+freshDays, verified — plus optional enrichment: `url` (deep link),
+`priceMin`/`priceMax` (asking range; `price` = midpoint), `dues`, `floor`,
+`yearBuilt`, `turnover` (rfo/preselling), `advanceMonths`/`depositMonths`
+(rent), `agent`, `brokerType` (owner/broker/developer), `listedAt`,
+`geoPrecision` ("exact" | "city"), `outlier` (price flag).
 
 **Rules baked into the product — keep them:**
 
@@ -87,15 +91,32 @@ freshDays, verified.
    under ±5% (self-comparison noise in small cities).
 4. Price heat tiers are percentile ranks within the same tenure cohort.
 5. Anything not live-ingested is clearly labeled demo (sync badge + disclaimer).
+6. **Price sanity is automatic** (`src/lib/price.ts`): `validatePrice()` gates
+   ingest against per-tenure×type bounds (₱total and ₱/m²); statistical
+   outliers get IQR/MAD-fenced per city×tenure×type cohort and surface as an
+   amber ⚠ chip — we show them, we don't hide them.
+7. **Cross-source dedupe**: same unit reposted on two portals collapses
+   (fingerprint = city|tenure|type|beds|sqm band ±12%|price band ±8%; the
+   richer, verified row wins).
+8. **Every row wears its completeness** (`completenessOf()` 0–100 meter in the
+   detail panel listing which fields are missing) and a "Most complete data"
+   sort exists in the filter bar.
 
 ## 5. Aggregation (the real product) — /adapters + scripts/ingest.ts
 
 ```
-portal connector → normalize() → dedupe() → public/data/listings.json → useFeed() polls
+portal connector → normalize() → [per-source] → merge → dedupe(cross-source)
+→ flagOutliers() → public/data/listings.json → useFeed() polls
 ```
 
 - One connector per portal in `adapters/sources/*.ts`, all implementing
   `SourceAdapter` (`adapters/contract.ts`).
+- `normalize()` accepts price ranges (min/max → midpoint), maps furnished /
+  parking / features / dues / floor / year-built / turnover / rent terms /
+  agent / listed-at, geocodes missing pins from the PH city-centre table
+  (`adapters/geo.ts`, sets `geoPrecision: "city"`), and drops rows with a
+  logged reason: missing-url-or-title, missing-price, missing-sqm,
+  invalid-price, unmappable-city.
 - Connectors run from **configured feeds only** (`LASELLO_FEED_<SOURCE>` env /
   repo secret → partner API, licensed feed, or agreed export). Robots checks
   (2025-09): Lamudi 403s bots at the CDN, Carousell disallows query URLs,
@@ -119,8 +140,6 @@ the scheduled feed commits become live data.
 
 - **P0 · Feed deals:** get at least one real feed configured (broker exports
   count — see Phase 3); everything downstream already works.
-- **P0 · Real geocoding:** ingest-time geocoder for feeds that lack lat/lng
-  (`normalize()` currently hard-requires coords).
 - **P1 · Listing photos:** thumbnails via the source's og:image with
   attribution (do not hotlink listing galleries).
 - **P1 · Saved searches / alerts:** email or Telegram bot for price drops.

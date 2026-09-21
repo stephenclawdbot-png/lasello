@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { dedupe, normalize } from "../adapters/contract";
+import { dedupe, flagOutliers, normalize } from "../adapters/contract";
 import { ADAPTERS } from "../adapters/sources";
 import { FeedNotConfiguredError } from "../adapters/sources/feed";
 import { LISTINGS, type Listing } from "../src/data/listings";
@@ -54,10 +54,21 @@ async function main() {
   for (const adapter of ADAPTERS) {
     try {
       const raw = await adapter.fetchListings();
-      const rows = dedupe(raw.map(normalize).filter((l): l is Listing => l !== null));
+      const dropped: Record<string, number> = {};
+      const rows: Listing[] = [];
+      for (const r of raw) {
+        const { listing, reason } = normalize(r);
+        if (listing) rows.push(listing);
+        else if (reason) dropped[reason] = (dropped[reason] ?? 0) + 1;
+      }
       live.push(...rows);
-      statuses.push({ key: adapter.key, status: "live", count: rows.length });
-      console.log(`✓ ${adapter.key}: ${rows.length} listings`);
+      const dropNote = Object.entries(dropped)
+        .filter(([, n]) => n > 0)
+        .map(([r, n]) => `${n} ${r}`)
+        .join(", ");
+      const notes = [dropped ? `dropped: ${dropNote}` : ""].filter(Boolean);
+      statuses.push({ key: adapter.key, status: "live", count: rows.length, note: notes.join(" · ") || undefined });
+      console.log(`✓ ${adapter.key}: ${rows.length} listings${notes.length ? ` (${notes.join(" · ")})` : ""}`);
     } catch (e) {
       const pending = e instanceof FeedNotConfiguredError;
       // keep the previous run's rows for a source that errored (not pending)
@@ -74,17 +85,27 @@ async function main() {
   }
 
   const demo = live.length === 0;
+  // Cross-source dedupe + outlier flags over the full merged set.
+  let listings: Listing[] = demo ? LISTINGS : [];
+  if (!demo) {
+    const merged = dedupe(live);
+    const dupesCollapsed = live.length - merged.length;
+    const outliers = flagOutliers(merged);
+    listings = merged.map((l) => (outliers.has(l.id) ? { ...l, outlier: true } : l));
+    console.log(`↷ cross-source dedupe collapsed ${dupesCollapsed} duplicate rows; flagged ${outliers.size} price outliers`);
+  }
+  const flagged = listings.filter((l) => l.outlier).length;
   const feed: Feed = {
     generatedAt: new Date().toISOString(),
     demo,
     sources: demo ? statuses.map((s) => (s.status === "live" ? s : { ...s, count: 0 })) : statuses,
-    listings: demo ? LISTINGS : live,
+    listings,
   };
 
   await mkdir(dirname(OUT), { recursive: true });
   await writeFile(OUT, JSON.stringify(feed, null, 1));
   console.log(
-    `\nwrote ${feed.listings.length} listings (${demo ? "DEMO seed — no live sources configured" : "live"}) → ${OUT}`
+    `\nwrote ${feed.listings.length} listings (${demo ? "DEMO seed — no live sources configured" : "live"}, ${flagged} flagged as price outliers) → ${OUT}`
   );
 }
 

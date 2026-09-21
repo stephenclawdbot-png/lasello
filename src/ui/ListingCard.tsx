@@ -2,6 +2,7 @@ import type { Listing } from "../data/listings";
 import { perSqm } from "../data/listings";
 import { SOURCES } from "../data/sources";
 import { fmtPeso, fmtPsqm } from "../lib/stats";
+import { validatePrice } from "../lib/price";
 import { AreaIcon, BathIcon, BedIcon, TypeArt } from "./icons";
 
 export default function ListingCard({
@@ -18,6 +19,7 @@ export default function ListingCard({
   const src = SOURCES[listing.source];
   const monthly = listing.tenure === "rent";
   const psqm = perSqm(listing);
+  const outlier = listing.outlier || validatePrice(listing) === "outlier";
 
   let medianChip = null;
   const pct = cityMedian && cityMedian > 0 ? Math.round(((psqm - cityMedian) / cityMedian) * 100) : 0;
@@ -44,12 +46,19 @@ export default function ListingCard({
         <div className="card-price-row">
           <span className="card-price">
             {fmtPeso(listing.price, monthly)}
+            {listing.priceMin != null && listing.priceMax != null && <small className="range-mark"> range</small>}
           </span>
+          {outlier && (
+            <span className="outlier-chip" title="Price is plausible but far from this city's norm">
+              ⚠ outlier
+            </span>
+          )}
           {medianChip}
         </div>
         <p className="card-name">{listing.name}</p>
         <p className="card-loc">
           {listing.city}, {listing.region} · {fmtPsqm(psqm)}
+          {listing.geoPrecision === "city" ? " · ~pin" : ""}
         </p>
         <div className="card-specs">
           {listing.beds > 0 && (

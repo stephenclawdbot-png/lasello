@@ -15,8 +15,11 @@ export interface Listing {
   lng: number;
   type: ListingType;
   tenure: Tenure;
-  /** PHP total for sale, PHP per month for rent */
+  /** PHP total for sale, PHP per month for rent. Midpoint when the portal shows a range. */
   price: number;
+  /** Asking range when the portal gives one (price = midpoint). */
+  priceMin?: number;
+  priceMax?: number;
   sqm: number;
   beds: number;
   baths: number;
@@ -25,9 +28,40 @@ export interface Listing {
   description: string;
   features: string[];
   source: SourceKey;
+  /** Deep link to the original listing page, when the source provides one. */
+  url?: string;
+  /** Condo association / subdivision dues, PHP per month. */
+  dues?: number;
+  /** Unit floor number (condos). */
+  floor?: number;
+  yearBuilt?: number;
+  /** Ready-for-occupancy vs pre-selling (new PH developments). */
+  turnover?: "rfo" | "preselling";
+  /** Rent terms: months advance + security deposit. */
+  advanceMonths?: number;
+  depositMonths?: number;
+  agent?: string;
+  brokerType?: "owner" | "broker" | "developer";
+  /** ISO date the portal published the listing, when available. */
+  listedAt?: string;
   freshDays: number;
   verified: boolean;
+  /** Set by the price-validation layer: plausible but far from the city norm. */
+  outlier?: boolean;
+  /** Coordinates are exact when the portal geocodes; "city" = city-centre fallback. */
+  geoPrecision?: "exact" | "city";
 }
+
+export const TURNOVER_LABELS: Record<NonNullable<Listing["turnover"]>, string> = {
+  rfo: "Ready for occupancy",
+  preselling: "Pre-selling",
+};
+
+export const BROKER_LABELS: Record<NonNullable<Listing["brokerType"]>, string> = {
+  owner: "Owner-listed",
+  broker: "Licensed broker",
+  developer: "Developer",
+};
 
 export function perSqm(l: Listing): number {
   return l.price / l.sqm;

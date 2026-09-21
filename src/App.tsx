@@ -6,6 +6,7 @@ import ListingCard from "./ui/ListingCard";
 import { Header, Legend, Disclaimer } from "./ui/Overlays";
 import { perSqm, type Listing } from "./data/listings";
 import { cityMedians } from "./lib/stats";
+import { withinCap, completenessOf } from "./lib/price";
 import { useFeed } from "./lib/live";
 import { loadPhilippines, type Island } from "./lib/geo";
 
@@ -14,7 +15,7 @@ function matches(l: Listing, f: FilterState): boolean {
   if (f.verifiedOnly && !l.verified) return false;
   if (f.types.size > 0 && !f.types.has(l.type)) return false;
   if (f.sources.size > 0 && !f.sources.has(l.source)) return false;
-  if (f.tenure !== "rent" && l.price > f.maxPriceM * 1_000_000) return false;
+  if (!withinCap(l, f.maxPrice)) return false;
   if (f.q) {
     const q = f.q.toLowerCase();
     if (!`${l.name} ${l.city} ${l.region}`.toLowerCase().includes(q)) return false;
@@ -31,6 +32,10 @@ function sortListings(list: Listing[], sort: SortKey): Listing[] {
       return s.sort((a, b) => b.price - a.price);
     case "psqm-asc":
       return s.sort((a, b) => perSqm(a) - perSqm(b));
+    case "complete":
+      return s.sort(
+        (a, b) => completenessOf(b).score - completenessOf(a).score || a.freshDays - b.freshDays
+      );
     default:
       return s.sort((a, b) => a.freshDays - b.freshDays);
   }
@@ -95,6 +100,7 @@ export default function App() {
               <option value="price-asc">Price: low to high</option>
               <option value="price-desc">Price: high to low</option>
               <option value="psqm-asc">Best ₱/m² value</option>
+              <option value="complete">Most complete data</option>
             </select>
           </div>
 

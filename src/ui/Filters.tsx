@@ -1,15 +1,17 @@
 import type { ListingType } from "../data/listings";
 import type { SourceKey } from "../data/sources";
 import { SOURCE_LIST } from "../data/sources";
+import { priceBuckets } from "../lib/price";
 
-export type SortKey = "fresh" | "price-asc" | "price-desc" | "psqm-asc";
+export type SortKey = "fresh" | "price-asc" | "price-desc" | "psqm-asc" | "complete";
 
 export interface FilterState {
   q: string;
   types: Set<ListingType>;
   sources: Set<SourceKey>;
   tenure: "all" | "sale" | "rent";
-  maxPriceM: number; // millions PHP, 999 = no cap
+  /** Price cap in PHP (Infinity = no cap). Interpreted as ₱/mo for rent. */
+  maxPrice: number;
   verifiedOnly: boolean;
   sort: SortKey;
 }
@@ -19,7 +21,7 @@ export const DEFAULT_FILTERS: FilterState = {
   types: new Set(),
   sources: new Set(),
   tenure: "all",
-  maxPriceM: 999,
+  maxPrice: Infinity,
   verifiedOnly: false,
   sort: "fresh",
 };
@@ -30,8 +32,6 @@ const TYPES: { key: ListingType; label: string }[] = [
   { key: "lot", label: "Lot" },
   { key: "land", label: "Land / Farm" },
 ];
-
-const PRICE_STOPS = [3, 5, 8, 12, 20, 30, 50, 80];
 
 function toggleIn<T>(set: Set<T>, v: T): Set<T> {
   const next = new Set(set);
@@ -78,14 +78,15 @@ export default function FilterBar({
 
       <select
         className="f-select"
-        value={state.maxPriceM}
-        onChange={(e) => setState({ ...state, maxPriceM: Number(e.target.value) })}
+        value={priceBuckets(state.tenure).some((b) => b.cap === state.maxPrice) ? String(state.maxPrice) : "any"}
+        onChange={(e) =>
+          setState({ ...state, maxPrice: e.target.value === "any" ? Infinity : Number(e.target.value) })
+        }
         aria-label="Max price"
       >
-        <option value={999}>Any price</option>
-        {PRICE_STOPS.map((m) => (
-          <option key={m} value={m}>
-            Up to ₱{m}M
+        {priceBuckets(state.tenure).map((b) => (
+          <option key={b.cap === Infinity ? "any" : b.cap} value={b.cap === Infinity ? "any" : String(b.cap)}>
+            {b.label}
           </option>
         ))}
       </select>
