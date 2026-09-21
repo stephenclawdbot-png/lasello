@@ -20,9 +20,9 @@ explicitly rejected by the owner ("looks like an OSINT site").
 
 - Primary user: **OFWs / balikbayans / remote investors** buying property
   sight-unseen. Secondary: local buyers drowning in duplicate/fake listings
-  across the 13 covered platforms: Lamudi, Property24, DotProperty, Rentpad,
-  ZipMatch, Carousell, FB Marketplace, OnePropertee, MyProperty.ph, Hoppler,
-  Filipino Homes, Rent.ph, Ohmyhome.
+  across the 27 covered platforms in five categories: portals, developer
+  pre-selling, bank foreclosures, brokerages and classifieds (registry in
+  src/data/sources.ts).
 - The pain: PH portals fragment the market and don't let you compare **₱/m²**
   across them; FB listings are untrustworthy; remote buyers can't sanity-check
   prices.
@@ -52,9 +52,11 @@ npm run ingest   # run portal connectors → public/data/listings.json
 ```
 src/
   data/listings.ts   CURATED anchors (78 hand-written rows) + LISTINGS =
-                     curated + generated (~2,650 total, complete details).
-  data/generate.ts   deterministic demo generator: 59 cities, tiered ₱/m²
-                     bands, type/tenure mixes, seeded PRNG (stable ids).
+                     curated + generated (~6,600 total, complete details).
+  data/generate.ts   deterministic demo generator: 100+ cities, tiered ₱/m²
+                     bands, channel model (portal/developer/bank/brokerage/
+                     classifieds — foreclosure discounts, pre-selling
+                     premiums), seeded PRNG (stable ids).
   data/sources.ts    Source registry: name, color, deep-link SEARCH templates.
   lib/geo.ts         topojson → PH island outlines (lat/lng rings).
   lib/stats.ts       percentiles, city medians, ₱/m² tiers, peso formatting.
