@@ -1,7 +1,7 @@
 import type { Feed } from "../lib/live";
 import { agoLabel } from "../lib/live";
 import { TIER_COLORS } from "../lib/stats";
-import { HomeMark, SearchIcon } from "./icons";
+import { LogoMark, SearchIcon } from "./icons";
 
 export function Header({
   q,
@@ -16,7 +16,7 @@ export function Header({
     <header className="header">
       <a className="logo" href="/">
         <span className="logo-mark">
-          <HomeMark />
+          <LogoMark size={34} />
         </span>
         <span className="logo-word">Lasello</span>
         <span className="logo-tag">Philippine property, all portals in one place</span>

@@ -49,6 +49,23 @@ export const HomeMark = () => (
   </svg>
 );
 
+/** Lasello brand mark — a map pin hovering over an archipelago. */
+export const LogoMark = ({ size = 32 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
+    <defs>
+      <linearGradient id="lasello-tile" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#12857c" />
+        <stop offset="1" stopColor="#0b5b55" />
+      </linearGradient>
+    </defs>
+    <rect width="32" height="32" rx="9" fill="url(#lasello-tile)" />
+    <ellipse cx="10" cy="25.6" rx="4.6" ry="2.1" fill="#f2ead9" opacity="0.92" />
+    <ellipse cx="21.5" cy="26.9" rx="5.8" ry="2.5" fill="#ffffff" opacity="0.8" />
+    <path d="M16 6.2c-3.7 0-6.7 3-6.7 6.7 0 5 6.7 10.6 6.7 10.6s6.7-5.6 6.7-10.6c0-3.7-3-6.7-6.7-6.7Z" fill="#ffffff" />
+    <circle cx="16" cy="12.9" r="2.9" fill="#ff6b4a" />
+  </svg>
+);
+
 /** Soft tinted placeholder art per property type (we never hotlink portal photos). */
 const MEDIA: Record<ListingType, { bg: string; ink: string; art: ReactNode }> = {
   condo: {
