@@ -32,15 +32,17 @@ jobs:
           LASELLO_FEED_ZIPMATCH: ${{ secrets.LASELLO_FEED_ZIPMATCH }}
           LASELLO_FEED_FACEBOOK: ${{ secrets.LASELLO_FEED_FACEBOOK }}
           LASELLO_FEED_CAROUSELL: ${{ secrets.LASELLO_FEED_CAROUSELL }}
+          LASELLO_CRAWL_CAP: "120"
 
       - name: Commit updated feed
         run: |
-          if git diff --quiet public/data/listings.json 2>/dev/null && [ -n "$(git ls-files public/data/listings.json)" ]; then
-            echo "feed unchanged"
-            exit 0
-          fi
           git config user.name "lasello-ingest[bot]"
           git config user.email "ingest@users.noreply.github.com"
           git add public/data/listings.json
-          git commit -m "chore: refresh aggregated listings feed"
+          git add data/crawl 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "feed unchanged"
+            exit 0
+          fi
+          git commit -m "chore: refresh aggregated listings feed + crawl state"
           git push

@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-09-21T06:39:08.888Z",
+ "generatedAt": "2026-09-21T06:53:25.190Z",
  "demo": false,
  "sources": [
   {
@@ -46,9 +46,9 @@
   },
   {
    "key": "carousell",
-   "status": "pending",
+   "status": "error",
    "count": 0,
-   "note": "Carousell PH property — robots disallows search/query URLs. Runs with an agreed feed URL in LASELLO_FEED_CAROUSELL."
+   "note": "Error: sitemap fetch HTTP 403 (www.carousell.ph)"
   }
  ],
  "listings": [

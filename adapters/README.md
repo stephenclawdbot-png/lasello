@@ -51,6 +51,24 @@ Portal rows **must** carry a `url` (deep-link rule); broker rows may not.
 `npm run ingest` runs them all; `.github/workflows/ingest.yml` does it every
 6 hours and commits the feed, which the deployed site re-polls every 5 min.
 
+## Public-sitemap crawl (carousell)
+
+Carousell PH publishes an official, open sitemap of property listing pages
+(`carousell.ph/sitemaps/products/ph-property.xml`, ~21k URLs; robots.txt has
+no Disallow for `/p/` pages). `sources/carousell.ts` + `sources/crawl.ts`
+crawl it **slowly and incrementally**:
+
+- politeness delay 2.6 s per request, per-run cap `LASELLO_CRAWL_CAP`
+  (default 120 pages),
+- pages are extracted from the server-rendered JSON-LD Product + embedded
+  blob (city, coordinates, address); beds/baths/sqm from title+description
+  text,
+- every row keeps a direct deep link + source attribution,
+- Cloudflare may throttle: blocked pages retry next cycle, tracked in
+  `data/crawl/carousell.json` (committed by the workflow so the cursor and
+  attempt counts survive across runs),
+- an agreed feed URL in `LASELLO_FEED_CAROUSELL` overrides the crawl.
+
 ## Rules (non-negotiable)
 
 1. **Attribute.** Portal listings carry a direct `url` to the source portal —

@@ -142,16 +142,22 @@ portal connector → normalize() → [per-source] → merge → dedupe(cross-sou
 - Portal connectors run from **configured feeds only**
   (`LASELLO_FEED_<SOURCE>` env / repo secret → partner API, licensed feed, or
   agreed export). Robots checks (2025-09): Lamudi 403s bots at the CDN,
-  Carousell disallows query URLs, Rentpad publishes content-signal
-  restrictions — **we never scrape, and we don't ship ToS-breaking
-  scrapers.** A connector without a feed reports `pending`; an erroring one
-  keeps its previous rows (stale-safe).
+  Rentpad publishes content-signal restrictions — **we never scrape
+  ToS-blocking portals.**
+- Exception: **Carousell sitemap crawl** — Carousell publishes an official
+  open sitemap of property pages (robots-allowed). `sources/carousell.ts` +
+  `sources/crawl.ts` crawl it slowly (2.6 s politeness, 120-page cap, deep
+  links preserved) and incrementally (`data/crawl/carousell.json` committed
+  by the workflow). Cloudflare occasionally WAF-blocks runs; blocked pages
+  retry next cycle and the pipeline stays stale-safe. A configured
+  `LASELLO_FEED_CAROUSELL` overrides the crawl.
 - `npm run ingest` writes the feed; the GitHub Action runs it every 6 hours
   and commits changes (Vercel redeploys); the client re-polls every 5 minutes.
   Net effect: near-real-time updates end to end once feeds are configured.
 
-Next targets in order of ROI: ZipMatch → Carousell PH property → FB
-Marketplace (official surfaces only) → Property24 → Lamudi (partner API).
+Next targets in order of ROI: Carousell sitemap crawl (live — grows the
+corpus every run) → ZipMatch → FB Marketplace (official surfaces only) →
+Property24 → Lamudi (partner API).
 
 ## 6. Deploy (Vercel)
 
