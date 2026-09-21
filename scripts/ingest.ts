@@ -73,18 +73,21 @@ async function main() {
     }
   }
 
+  // With zero live rows the feed stays empty: the client rejects an empty
+  // feed and falls back to the bundled demo inventory (curated + generated,
+  // see src/data/listings.ts), so we never commit megabytes of demo JSON.
   const demo = live.length === 0;
   const feed: Feed = {
     generatedAt: new Date().toISOString(),
     demo,
     sources: demo ? statuses.map((s) => (s.status === "live" ? s : { ...s, count: 0 })) : statuses,
-    listings: demo ? LISTINGS : live,
+    listings: demo ? [] : live,
   };
 
   await mkdir(dirname(OUT), { recursive: true });
   await writeFile(OUT, JSON.stringify(feed, null, 1));
   console.log(
-    `\nwrote ${feed.listings.length} listings (${demo ? "DEMO seed — no live sources configured" : "live"}) → ${OUT}`
+    `\nwrote ${feed.listings.length} live listings (${demo ? `demo mode — client falls back to the bundled ${LISTINGS.length}-listing demo inventory` : "live"}) → ${OUT}`
   );
 }
 

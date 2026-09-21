@@ -39,20 +39,26 @@ export function fmtPsqm(n: number): string {
   return `₱${Math.round(n).toLocaleString("en-PH")}/m²`;
 }
 
-/** Median price-per-sqm per city, split by tenure. Cities need >=2 listings to matter. */
-export function cityMedians(listings: Listing[]): Map<string, { sale: number; rent: number }> {
-  const map = new Map<string, { sale: number; rent: number }>();
-  const byCity = new Map<string, Listing[]>();
+/** Cohort key for median comparison: same city, same tenure, same type. */
+export function medianKey(l: Pick<Listing, "city" | "tenure" | "type">): string {
+  return `${l.city}|${l.tenure}|${l.type}`;
+}
+
+/**
+ * Median ₱/m² per (city, tenure, type) cohort. Comparing a lot's ₱/m² against
+ * a condo-dominated city median is misleading — cohorts keep the chip honest.
+ */
+export function cityMedians(listings: Listing[]): Map<string, number> {
+  const buckets = new Map<string, number[]>();
   for (const l of listings) {
-    const arr = byCity.get(l.city) ?? [];
-    arr.push(l);
-    byCity.set(l.city, arr);
+    const k = medianKey(l);
+    const arr = buckets.get(k) ?? [];
+    arr.push(l.price / l.sqm);
+    buckets.set(k, arr);
   }
-  for (const [city, arr] of byCity) {
-    map.set(city, {
-      sale: median(arr.filter((l) => l.tenure === "sale").map((l) => l.price / l.sqm)),
-      rent: median(arr.filter((l) => l.tenure === "rent").map((l) => l.price / l.sqm)),
-    });
+  const map = new Map<string, number>();
+  for (const [k, arr] of buckets) {
+    if (arr.length >= 3) map.set(k, median(arr));
   }
   return map;
 }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Listing } from "../data/listings";
 import { perSqm } from "../data/listings";
-import { percentileRank, tierOfRank, TIER_COLORS, fmtPeso } from "../lib/stats";
+import { tierOfRank, TIER_COLORS, fmtPeso } from "../lib/stats";
 import type { Island } from "../lib/geo";
 
 /** Flat equirectangular projection fitted to the PH archipelago. */
@@ -13,7 +13,13 @@ const S = 40;
 const W = Math.round((LNG_MAX - LNG_MIN) * S);
 const H = Math.round((LAT_MAX - LAT_MIN) * S);
 const K_MIN = 1;
-const K_MAX = 14;
+const K_MAX = 18;
+/** Below this zoom, listings collapse into per-city cluster bubbles. */
+const CLUSTER_K = 3.4;
+/** From this zoom, pins render as price pills instead of dots. */
+const PILL_K = 5.5;
+/** Hard cap on individual pins rendered at once. */
+const MAX_PINS = 400;
 
 const px = (lng: number) => (lng - LNG_MIN) * S;
 const py = (lat: number) => (LAT_MAX - lat) * S;
@@ -49,6 +55,17 @@ const clampView = (v: View): View => {
   };
 };
 
+function lowerBound(a: number[], v: number): number {
+  let lo = 0;
+  let hi = a.length;
+  while (lo < hi) {
+    const m = (lo + hi) >> 1;
+    if (a[m] <= v) lo = m + 1;
+    else hi = m;
+  }
+  return lo;
+}
+
 export default function Map2D({
   islands,
   listings,
@@ -81,11 +98,40 @@ export default function Map2D({
     [islands]
   );
 
-  const psqmByTenure = useMemo(() => {
-    const sale = listings.filter((l) => l.tenure === "sale").map(perSqm);
-    const rent = listings.filter((l) => l.tenure === "rent").map(perSqm);
-    return { sale, rent };
+  // Fast percentile-tier lookup: sorted ₱/m² per tenure cohort + binary search.
+  const tierColorOf = useMemo(() => {
+    const sale = listings.filter((l) => l.tenure === "sale").map(perSqm).sort((a, b) => a - b);
+    const rent = listings.filter((l) => l.tenure === "rent").map(perSqm).sort((a, b) => a - b);
+    return (l: Listing) => {
+      const arr = l.tenure === "sale" ? sale : rent;
+      const rank = arr.length ? lowerBound(arr, perSqm(l)) / arr.length : 0.5;
+      return TIER_COLORS[tierOfRank(rank)];
+    };
   }, [listings]);
+
+  // Zoom-dependent grid clusters: nearby cities merge at low zoom and split
+  // apart as you zoom in, so bubbles never pile on top of each other.
+  const kq = Math.max(1, Math.round(view.k * 2) / 2);
+  const clusters = useMemo(() => {
+    const cell = 64 / kq;
+    const m = new Map<string, { x: number; y: number; count: number }>();
+    for (const l of listings) {
+      const x = px(l.lng);
+      const y = py(l.lat);
+      const key = `${Math.floor(x / cell)}:${Math.floor(y / cell)}`;
+      const c = m.get(key);
+      if (c) {
+        c.x += x;
+        c.y += y;
+        c.count++;
+      } else {
+        m.set(key, { x, y, count: 1 });
+      }
+    }
+    const arr = [...m.entries()].map(([key, c]) => ({ key, x: c.x / c.count, y: c.y / c.count, count: c.count }));
+    const max = Math.max(1, ...arr.map((c) => c.count));
+    return { arr, max };
+  }, [listings, kq]);
 
   const flyTo = (target: View) => {
     cancelAnimationFrame(animRef.current);
@@ -110,7 +156,7 @@ export default function Map2D({
   useEffect(() => {
     if (!selectedId) return;
     const l = listings.find((x) => x.id === selectedId);
-    if (l) flyTo({ cx: px(l.lng), cy: py(l.lat), k: Math.max(viewRef.current.k, 6) });
+    if (l) flyTo({ cx: px(l.lng), cy: py(l.lat), k: Math.max(viewRef.current.k, 7) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId]);
 
@@ -125,7 +171,6 @@ export default function Map2D({
       const rect = svg.getBoundingClientRect();
       const scale = Math.exp(-e.deltaY * 0.0016);
       const k = Math.min(K_MAX, Math.max(K_MIN, v.k * scale));
-      // keep the point under the cursor fixed
       const fx = (e.clientX - rect.left) / rect.width - 0.5;
       const fy = (e.clientY - rect.top) / rect.height - 0.5;
       const wx = v.cx + fx * (W / v.k);
@@ -154,16 +199,61 @@ export default function Map2D({
     setView(clampView({ ...viewRef.current, cx: d.cx - dx * upp, cy: d.cy - dy * upp }));
   };
 
+  // Deselect ONLY on a genuine stationary click on the sea — never when the
+  // pointer merely leaves the map (that was closing the detail panel).
   const onPointerUp = () => {
-    const moved = drag.current?.moved;
+    const d = drag.current;
     drag.current = null;
-    if (!moved) onSelect(null); // plain click on the sea = deselect
+    if (d && !d.moved) onSelect(null);
+  };
+
+  const onPointerLeave = () => {
+    drag.current = null;
   };
 
   const { cx, cy, k } = view;
   const inv = 1 / k;
-  const showPills = k >= 2.4;
   const activeId = hoverId ?? selectedId;
+  const clustered = k < CLUSTER_K;
+
+  // Viewport culling: only render pins inside the current view (+margin).
+  const inView = useMemo(() => {
+    if (clustered) return [];
+    const mx = W / (2 * k) + 30 / k;
+    const my = H / (2 * k) + 30 / k;
+    const rows = listings.filter((l) => Math.abs(px(l.lng) - cx) < mx && Math.abs(py(l.lat) - cy) < my);
+    return rows.length > MAX_PINS ? rows.slice(0, MAX_PINS) : rows;
+  }, [listings, clustered, cx, cy, k]);
+
+  const showPills = k >= PILL_K;
+
+  // Greedy declutter: a pin renders as a price pill only if its pill wouldn't
+  // overlap one already placed; crowded neighbors fall back to dots.
+  const pillIds = useMemo(() => {
+    const set = new Set<string>();
+    if (!showPills) return set;
+    const placed: { x1: number; x2: number; y1: number; y2: number }[] = [];
+    for (const l of inView) {
+      const label = fmtPeso(l.price, l.tenure === "rent");
+      const w = (label.length * 7.4 + 22) / k;
+      const h = 32 / k;
+      const x = px(l.lng);
+      const y = py(l.lat);
+      const box = { x1: x - w / 2, x2: x + w / 2, y1: y - h / 2, y2: y + h / 2 };
+      let hit = false;
+      for (const b of placed) {
+        if (box.x1 < b.x2 && box.x2 > b.x1 && box.y1 < b.y2 && box.y2 > b.y1) {
+          hit = true;
+          break;
+        }
+      }
+      if (!hit) {
+        placed.push(box);
+        set.add(l.id);
+      }
+    }
+    return set;
+  }, [inView, showPills, k]);
 
   return (
     <>
@@ -177,7 +267,7 @@ export default function Map2D({
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onPointerLeave={onPointerUp}
+        onPointerLeave={onPointerLeave}
       >
         <defs>
           <filter id="island-shadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -202,42 +292,70 @@ export default function Map2D({
           </text>
         ))}
 
-        {listings.map((l) => {
-          const color = TIER_COLORS[tierOfRank(percentileRank(psqmByTenure[l.tenure], perSqm(l)))];
-          const isActive = l.id === activeId;
-          const isSelected = l.id === selectedId;
-          const pill = showPills || isActive;
-          const label = fmtPeso(l.price, l.tenure === "rent");
-          const pw = label.length * 7.4 + 18;
-          return (
-            <g
-              key={l.id}
-              className={`map2d-pin ${isActive ? "active" : ""}`}
-              transform={`translate(${px(l.lng).toFixed(1)} ${py(l.lat).toFixed(1)}) scale(${inv})`}
-              onMouseEnter={() => setHoverId(l.id)}
-              onMouseLeave={() => setHoverId(null)}
-              onPointerUp={(e) => {
-                if (drag.current?.moved) return;
-                e.stopPropagation();
-                drag.current = null;
-                onSelect(l.id);
-              }}
-            >
-              {isSelected && <circle r={16} className="map2d-ring" style={{ stroke: color }} />}
-              {pill ? (
-                <g className="map2d-pill-g">
-                  <rect x={-pw / 2} y={-13} width={pw} height={26} rx={13} className={`map2d-pill ${isSelected ? "sel" : ""}`} />
-                  <circle cx={-pw / 2 + 13} cy={0} r={4.5} fill={color} />
-                  <text x={6} y={4.5} className={`map2d-pill-text ${isSelected ? "sel" : ""}`}>
-                    {label}
+        {clustered
+          ? clusters.arr.map((c) => {
+              const r = 13 + 15 * Math.sqrt(c.count / clusters.max);
+              return (
+                <g
+                  key={c.key}
+                  className="map2d-cluster"
+                  transform={`translate(${c.x.toFixed(1)} ${c.y.toFixed(1)}) scale(${inv})`}
+                  onPointerUp={(e) => {
+                    if (drag.current?.moved) return;
+                    e.stopPropagation();
+                    drag.current = null;
+                    flyTo({ cx: c.x, cy: c.y, k: Math.min(K_MAX, Math.max(viewRef.current.k * 2.6, 4)) });
+                  }}
+                >
+                  <circle r={r} className="map2d-cluster-halo" />
+                  <circle r={r - 3.5} className="map2d-cluster-core" />
+                  <text y={4.5} className="map2d-cluster-count">
+                    {c.count}
                   </text>
                 </g>
-              ) : (
-                <circle r={6.5} fill={color} stroke="#fff" strokeWidth={2} />
-              )}
-            </g>
-          );
-        })}
+              );
+            })
+          : [...inView]
+              .sort((a, b) => {
+                const rank = (l: Listing) => (l.id === activeId ? 2 : pillIds.has(l.id) ? 1 : 0);
+                return rank(a) - rank(b);
+              })
+              .map((l) => {
+              const color = tierColorOf(l);
+              const isActive = l.id === activeId;
+              const isSelected = l.id === selectedId;
+              const pill = (showPills && pillIds.has(l.id)) || isActive;
+              const label = fmtPeso(l.price, l.tenure === "rent");
+              const pw = label.length * 7.4 + 18;
+              return (
+                <g
+                  key={l.id}
+                  className={`map2d-pin ${isActive ? "active" : ""}`}
+                  transform={`translate(${px(l.lng).toFixed(1)} ${py(l.lat).toFixed(1)}) scale(${inv})`}
+                  onMouseEnter={() => setHoverId(l.id)}
+                  onMouseLeave={() => setHoverId(null)}
+                  onPointerUp={(e) => {
+                    if (drag.current?.moved) return;
+                    e.stopPropagation();
+                    drag.current = null;
+                    onSelect(l.id);
+                  }}
+                >
+                  {isSelected && <circle r={16} className="map2d-ring" style={{ stroke: color }} />}
+                  {pill ? (
+                    <g>
+                      <rect x={-pw / 2} y={-13} width={pw} height={26} rx={13} className={`map2d-pill ${isSelected ? "sel" : ""}`} />
+                      <circle cx={-pw / 2 + 13} cy={0} r={4.5} fill={color} />
+                      <text x={6} y={4.5} className={`map2d-pill-text ${isSelected ? "sel" : ""}`}>
+                        {label}
+                      </text>
+                    </g>
+                  ) : (
+                    <circle r={6.5} fill={color} stroke="#fff" strokeWidth={2} />
+                  )}
+                </g>
+              );
+            })}
       </svg>
 
       <div className="map-controls">

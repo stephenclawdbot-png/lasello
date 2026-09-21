@@ -51,15 +51,18 @@ npm run ingest   # run portal connectors → public/data/listings.json
 
 ```
 src/
-  data/listings.ts   DEMO seed (~78 listings across 13 portals, 30+ cities, complete details:
-                     address, description, features, parking, furnishing).
+  data/listings.ts   CURATED anchors (78 hand-written rows) + LISTINGS =
+                     curated + generated (~2,650 total, complete details).
+  data/generate.ts   deterministic demo generator: 59 cities, tiered ₱/m²
+                     bands, type/tenure mixes, seeded PRNG (stable ids).
   data/sources.ts    Source registry: name, color, deep-link SEARCH templates.
   lib/geo.ts         topojson → PH island outlines (lat/lng rings).
   lib/stats.ts       percentiles, city medians, ₱/m² tiers, peso formatting.
                      THE math authority — never fork it.
   lib/live.ts        useFeed(): loads /data/listings.json, re-polls every 5
                      min, falls back to the seed (labeled demo). agoLabel().
-  ui/Map2D.tsx       SVG map: pan/zoom/fly-to, price pills, city labels.
+  ui/Map2D.tsx       SVG map: pan/zoom/fly-to, zoom-dependent grid clusters,
+                     viewport culling (MAX_PINS), decluttered price pills.
   ui/ListingCard.tsx marketplace card (price, median chip, specs, source).
   ui/Filters.tsx     horizontal FilterBar; FilterState is the single source
                      of truth (incl. sort).
@@ -84,8 +87,8 @@ freshDays, verified.
 
 1. Every listing names its source and links out (deep link, not copy).
 2. ₱/m² is computed centrally in one place (`perSqm()` + `lib/stats.ts`).
-3. "vs city median" compares within the same city AND same tenure, and hides
-   under ±5% (self-comparison noise in small cities).
+3. "vs city median" compares within the same city, tenure AND type cohort
+   (min 3 listings), and hides under ±5%.
 4. Price heat tiers are percentile ranks within the same tenure cohort.
 5. Anything not live-ingested is clearly labeled demo (sync badge + disclaimer).
 
@@ -125,7 +128,6 @@ the scheduled feed commits become live data.
 - **P1 · Listing photos:** thumbnails via the source's og:image with
   attribution (do not hotlink listing galleries).
 - **P1 · Saved searches / alerts:** email or Telegram bot for price drops.
-- **P1 · Map clustering:** collapse overlapping Metro Manila pills at low zoom.
 - **P2 · Registry price layer:** overlay public assessed land values per
   region — killer differentiator.
 - **P2 · Broker submissions:** verified-pin funnel (Phase 3 flywheel).

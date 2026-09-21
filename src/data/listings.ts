@@ -1,4 +1,5 @@
 import type { SourceKey } from "./sources";
+import { generateListings } from "./generate";
 
 export type ListingType = "condo" | "house" | "lot" | "land";
 export type Tenure = "sale" | "rent";
@@ -210,7 +211,8 @@ const rows: Array<
     { addr: "Molino Blvd, Bacoor", park: 1, furn: "bare", desc: "3-bedroom starter home off Molino Boulevard, fixed-fee brokerage with paperwork assistance.", feat: ["Fixed-fee brokerage", "1-car garage", "Near Molino Blvd", "Paperwork assistance"] }],
 ];
 
-export const LISTINGS: Listing[] = rows.map((r, i) => ({
+/** Hand-curated anchor listings (fully written by hand, one per row above). */
+export const CURATED: Listing[] = rows.map((r, i) => ({
   id: `${r[1].toLowerCase().replace(/[^a-z]+/g, "-")}-${i}`,
   name: r[0],
   city: r[1],
@@ -232,6 +234,9 @@ export const LISTINGS: Listing[] = rows.map((r, i) => ({
   freshDays: r[12],
   verified: r[13],
 }));
+
+/** Full demo inventory: curated anchors + deterministic market-scale generator. */
+export const LISTINGS: Listing[] = [...CURATED, ...generateListings()];
 
 export const TYPE_LABELS: Record<ListingType, string> = {
   condo: "Condo",

@@ -112,6 +112,52 @@ button {
   cursor: pointer;
 }
 
+.map2d-cluster {
+  cursor: pointer;
+}
+
+.map2d-cluster-halo {
+  fill: rgba(15, 118, 110, 0.22);
+}
+
+.map2d-cluster-core {
+  fill: var(--brand);
+  stroke: #ffffff;
+  stroke-width: 2;
+}
+
+.map2d-cluster:hover .map2d-cluster-core {
+  fill: var(--brand-dark);
+}
+
+.map2d-cluster-count {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  fill: #ffffff;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.load-more {
+  display: block;
+  margin: 18px auto 0;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.load-more:hover {
+  border-color: var(--brand);
+  color: var(--brand-dark);
+}
+
 .map2d-ring {
   fill: none;
   stroke-width: 2;

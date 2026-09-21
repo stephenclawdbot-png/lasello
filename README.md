@@ -19,8 +19,9 @@ untrustworthy listings.
 
 ## Status
 
-**Demo seed** — ~78 hand-curated listings with complete details and
-market-plausible prices, clearly labeled in the UI. The connector pipeline
+**Demo inventory** — 2,600+ listings with complete details: 78 hand-curated
+anchors plus a deterministic, market-calibrated generator (`src/data/generate.ts`,
+city-level ₱/m² bands across 59 cities), clearly labeled as demo in the UI. The connector pipeline
 (`/adapters`, `scripts/ingest.ts`, `.github/workflows/ingest.yml`) is wired
 end-to-end; each portal goes live the moment its feed URL
 (`LASELLO_FEED_<SOURCE>` secret) is configured. See **HANDOFF.md**.
