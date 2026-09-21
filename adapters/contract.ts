@@ -1,4 +1,4 @@
-import type { Listing, ListingType, Tenure } from "../src/data/listings";
+import type { Furnished, Listing, ListingType, Tenure } from "../src/data/listings";
 import type { SourceKey } from "../src/data/sources";
 
 /**
@@ -26,6 +26,11 @@ export interface RawListing {
   sqm?: number;
   beds?: number;
   baths?: number;
+  address?: string;
+  parking?: number;
+  furnished?: Furnished;
+  description?: string;
+  features?: string[];
   firstSeen?: string;
   verified?: boolean;
 }
@@ -54,6 +59,11 @@ export function normalize(raw: RawListing): Listing | null {
     sqm: raw.sqm,
     beds: raw.beds ?? 0,
     baths: raw.baths ?? 0,
+    address: raw.address ?? "",
+    parking: raw.parking ?? 0,
+    furnished: raw.furnished ?? "bare",
+    description: raw.description ?? "",
+    features: raw.features ?? [],
     source: raw.source,
     freshDays: raw.firstSeen
       ? Math.max(0, Math.round((Date.now() - new Date(raw.firstSeen).getTime()) / 86_400_000))

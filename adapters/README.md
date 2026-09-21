@@ -4,8 +4,14 @@ The website itself **does not scrape anything**. Every listing on the map comes
 from this folder's pipeline, which is the only place real data is allowed in.
 
 ```
-internet ──> SourceAdapter.fetchListings() ──> normalize() ──> dedupe() ──> src/data/listings.ts (or API)
+internet ──> SourceAdapter.fetchListings() ──> normalize() ──> dedupe() ──> public/data/listings.json ──> useFeed() polls
 ```
+
+One connector per portal lives in `sources/`. Each pulls from a **configured
+feed** (partner API, licensed feed, or agreed export) set via env:
+`LASELLO_FEED_<SOURCEKEY>` (repo secrets feed the scheduled workflow).
+`npm run ingest` runs them all; `.github/workflows/ingest.yml` does it every
+6 hours and commits the feed, which the deployed site re-polls every 5 min.
 
 ## Rules (non-negotiable)
 

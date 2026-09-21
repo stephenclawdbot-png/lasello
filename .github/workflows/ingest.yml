@@ -1,0 +1,46 @@
+name: Sync listings feed
+
+on:
+  schedule:
+    - cron: "0 */6 * * *" # every 6 hours
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run portal connectors
+        run: npm run ingest
+        env:
+          # Feed URLs are partner/agreed exports — configure as repo secrets.
+          LASELLO_FEED_LAMUDI: ${{ secrets.LASELLO_FEED_LAMUDI }}
+          LASELLO_FEED_PROPERTY24: ${{ secrets.LASELLO_FEED_PROPERTY24 }}
+          LASELLO_FEED_DOTPROPERTY: ${{ secrets.LASELLO_FEED_DOTPROPERTY }}
+          LASELLO_FEED_RENTPAD: ${{ secrets.LASELLO_FEED_RENTPAD }}
+          LASELLO_FEED_ZIPMATCH: ${{ secrets.LASELLO_FEED_ZIPMATCH }}
+          LASELLO_FEED_FACEBOOK: ${{ secrets.LASELLO_FEED_FACEBOOK }}
+          LASELLO_FEED_CAROUSELL: ${{ secrets.LASELLO_FEED_CAROUSELL }}
+
+      - name: Commit updated feed
+        run: |
+          if git diff --quiet public/data/listings.json 2>/dev/null && [ -n "$(git ls-files public/data/listings.json)" ]; then
+            echo "feed unchanged"
+            exit 0
+          fi
+          git config user.name "lasello-ingest[bot]"
+          git config user.email "ingest@users.noreply.github.com"
+          git add public/data/listings.json
+          git commit -m "chore: refresh aggregated listings feed"
+          git push

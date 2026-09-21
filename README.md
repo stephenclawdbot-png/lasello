@@ -1,30 +1,38 @@
 # Lasello
 
-**Every Philippine listing. One map. Honest math.**
+**Philippine property, all portals in one place. Honest math.**
 
-A 3D aggregator for Philippine real estate - built for OFWs, balikbayans and
+An aggregator for Philippine real estate — built for OFWs, balikbayans and
 remote investors who buy sight-unseen and get burned by fragmented, duplicated,
 untrustworthy listings.
 
-- Interactive 3D archipelago of the Philippines (React Three Fiber)
-- Listings across 30+ cities - Metro Manila, Cebu, Davao, Palawan, Baguio...
-- Price-per-m2 heat tiers (percentile-normalized within each tenure)
-- Source receipts: every pin links out to the portal it came from
-- "vs city median" chips - know instantly if a price is off
-- Search + filters: tenure, type, max price, source, verified-only
+- Clean marketplace UI: listing cards + a light interactive map of the archipelago
+- Listings across 30+ cities — Metro Manila, Cebu, Davao, Palawan, Baguio…
+- Normalized ₱/m² with "vs city median" honesty chips
+- Source receipts: every listing names its portal and links out to it
+- Live aggregation pipeline: per-portal connectors → scheduled ingest →
+  auto-refreshing feed (`public/data/listings.json`, polled every 5 min)
+- Search, filters (tenure, type, price, source, verified-only) and sorting
 
 ## Status
 
-**Demo seed** - ~63 hand-curated listings with market-plausible prices and
-deep-link search templates. Real ingestion pipeline (`/adapters`) is specced
-and waiting for hands. See **HANDOFF.md** for architecture, roadmap and rules.
+**Demo seed** — ~61 hand-curated listings with complete details and
+market-plausible prices, clearly labeled in the UI. The connector pipeline
+(`/adapters`, `scripts/ingest.ts`, `.github/workflows/ingest.yml`) is wired
+end-to-end; each portal goes live the moment its feed URL
+(`LASELLO_FEED_<SOURCE>` secret) is configured. See **HANDOFF.md**.
 
 ## Dev
 
-    npm install --legacy-peer-deps
+    npm install
     npm run dev
 
-`--legacy-peer-deps` is required (R3F v9 optional `expo` peer conflict).
+## Ingest (aggregation)
+
+    npm run ingest   # runs all portal connectors, writes public/data/listings.json
+
+Scheduled every 6 hours by GitHub Actions; the site polls the feed every
+5 minutes, so new data shows up without a redeploy of code.
 
 ## Deploy
 

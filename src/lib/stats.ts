@@ -23,9 +23,9 @@ export function tierOfRank(rank: number): Tier {
 }
 
 export const TIER_COLORS: Record<Tier, string> = {
-  low: "#35C4B5",
-  mid: "#FFC15E",
-  high: "#FF6B4A",
+  low: "#15947c",
+  mid: "#e0a13c",
+  high: "#e25c4a",
 };
 
 export function fmtPeso(n: number, monthly = false): string {

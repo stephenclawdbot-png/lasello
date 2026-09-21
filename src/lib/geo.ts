@@ -3,16 +3,6 @@ import type { Topology, GeometryCollection } from "topojson-specification";
 import type { MultiPolygon, Polygon } from "geojson";
 import phUrl from "world-atlas/countries-50m.json?url";
 
-/** World-units-per-degree; PH spans ~11° lng → an ~11-unit-wide archipelago. */
-export const DEG = 1;
-export const LNG0 = 122.5;
-export const LAT0 = 12.5;
-
-/** lat/lng → world x/z (north = -z). */
-export function toWorld(lat: number, lng: number): [number, number] {
-  return [(lng - LNG0) * DEG, -(lat - LAT0) * DEG];
-}
-
 export interface Island {
   shape: { points: [number, number][] }[];
 }
