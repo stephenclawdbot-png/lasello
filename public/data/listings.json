@@ -1,7 +1,13 @@
 {
- "generatedAt": "2026-09-21T07:01:04.806Z",
- "demo": true,
+ "generatedAt": "2026-09-21T07:17:10.469Z",
+ "demo": false,
  "sources": [
+  {
+   "key": "broker",
+   "status": "live",
+   "count": 6,
+   "note": "dropped: "
+  },
   {
    "key": "lamudi",
    "status": "pending",
@@ -33,18 +39,6 @@
    "note": "ZipMatch — broker-fed platform; set LASELLO_FEED_ZIPMATCH to an agreed export URL."
   },
   {
-   "key": "facebook",
-   "status": "pending",
-   "count": 0,
-   "note": "FB Marketplace — official Graph API surfaces only (page/catalog with granted permissions). Set LASELLO_FEED_FACEBOOK to a compliant export URL."
-  },
-  {
-   "key": "carousell",
-   "status": "pending",
-   "count": 0,
-   "note": "Carousell PH property — robots disallows search/query URLs. Runs with an agreed feed URL in LASELLO_FEED_CAROUSELL."
-  },
-  {
    "key": "onepropertee",
    "status": "pending",
    "count": 0,
@@ -55,6 +49,78 @@
    "status": "pending",
    "count": 0,
    "note": "MyProperty.ph — partner/agreed feed only; set LASELLO_FEED_MYPROPERTY to a compliant export URL."
+  },
+  {
+   "key": "rentph",
+   "status": "pending",
+   "count": 0,
+   "note": "Rent.ph — partner/agreed feed only; set LASELLO_FEED_RENTPH to a compliant export URL."
+  },
+  {
+   "key": "smdc",
+   "status": "pending",
+   "count": 0,
+   "note": "SMDC — developer inventory via official/partner channel. Set LASELLO_FEED_SMDC to a compliant feed URL."
+  },
+  {
+   "key": "dmci",
+   "status": "pending",
+   "count": 0,
+   "note": "DMCI Homes — developer inventory via official/partner channel. Set LASELLO_FEED_DMCI to a compliant feed URL."
+  },
+  {
+   "key": "camella",
+   "status": "pending",
+   "count": 0,
+   "note": "Camella (Vista Land) — developer inventory via official/partner channel. Set LASELLO_FEED_CAMELLA to a compliant feed URL."
+  },
+  {
+   "key": "megaworld",
+   "status": "pending",
+   "count": 0,
+   "note": "Megaworld — developer inventory via official/partner channel. Set LASELLO_FEED_MEGAWORLD to a compliant feed URL."
+  },
+  {
+   "key": "ayalaland",
+   "status": "pending",
+   "count": 0,
+   "note": "Ayala Land — developer inventory via official/partner channel. Set LASELLO_FEED_AYALALAND to a compliant feed URL."
+  },
+  {
+   "key": "pagibig",
+   "status": "pending",
+   "count": 0,
+   "note": "Pag-IBIG Acquired Assets — public acquired-assets lists; use official published datasets/exports. Set LASELLO_FEED_PAGIBIG to a compliant feed URL."
+  },
+  {
+   "key": "buenamano",
+   "status": "pending",
+   "count": 0,
+   "note": "BPI Buena Mano — bank foreclosure inventory; use the bank's published list/export. Set LASELLO_FEED_BUENAMANO to a compliant feed URL."
+  },
+  {
+   "key": "bdo",
+   "status": "pending",
+   "count": 0,
+   "note": "BDO Properties for Sale — bank foreclosure inventory; use the bank's published list/export. Set LASELLO_FEED_BDO to a compliant feed URL."
+  },
+  {
+   "key": "metrobank",
+   "status": "pending",
+   "count": 0,
+   "note": "Metrobank Properties — bank foreclosure inventory; use the bank's published list/export. Set LASELLO_FEED_METROBANK to a compliant feed URL."
+  },
+  {
+   "key": "unionbank",
+   "status": "pending",
+   "count": 0,
+   "note": "UnionBank Foreclosed — bank foreclosure inventory; use the bank's published list/export. Set LASELLO_FEED_UNIONBANK to a compliant feed URL."
+  },
+  {
+   "key": "foreclosureph",
+   "status": "pending",
+   "count": 0,
+   "note": "ForeclosurePhilippines — aggregated foreclosure lists; agreed feed only. Set LASELLO_FEED_FORECLOSUREPH to a compliant feed URL."
   },
   {
    "key": "hoppler",
@@ -69,17 +135,265 @@
    "note": "Filipino Homes — partner/agreed feed only; set LASELLO_FEED_FILIPINOHOMES to a compliant export URL."
   },
   {
-   "key": "rentph",
-   "status": "pending",
-   "count": 0,
-   "note": "Rent.ph — partner/agreed feed only; set LASELLO_FEED_RENTPH to a compliant export URL."
-  },
-  {
    "key": "ohmyhome",
    "status": "pending",
    "count": 0,
    "note": "Ohmyhome — partner/agreed feed only; set LASELLO_FEED_OHMYHOME to a compliant export URL."
+  },
+  {
+   "key": "remax",
+   "status": "pending",
+   "count": 0,
+   "note": "RE/MAX Philippines — franchise broker listings; agreed feed only. Set LASELLO_FEED_REMAX to a compliant feed URL."
+  },
+  {
+   "key": "propertyaccess",
+   "status": "pending",
+   "count": 0,
+   "note": "PropertyAccess — brokerage listings; agreed feed only. Set LASELLO_FEED_PROPERTYACCESS to a compliant feed URL."
+  },
+  {
+   "key": "facebook",
+   "status": "pending",
+   "count": 0,
+   "note": "FB Marketplace — official Graph API surfaces only (page/catalog with granted permissions). Set LASELLO_FEED_FACEBOOK to a compliant export URL."
+  },
+  {
+   "key": "carousell",
+   "status": "error",
+   "count": 0,
+   "note": "Error: sitemap fetch HTTP 403 (www.carousell.ph)"
+  },
+  {
+   "key": "locanto",
+   "status": "pending",
+   "count": 0,
+   "note": "Locanto PH — classifieds; agreed feed/API only. Set LASELLO_FEED_LOCANTO to a compliant feed URL."
   }
  ],
- "listings": []
+ "listings": [
+  {
+   "id": "broker-brk-mak-001",
+   "name": "2BR Condo at Ayala Prime Tower",
+   "city": "Makati",
+   "region": "ncr",
+   "address": "Ayala Prime Tower, Legazpi Village",
+   "lat": 14.5657,
+   "lng": 121.0165,
+   "type": "condo",
+   "tenure": "sale",
+   "price": 23000000,
+   "sqm": 88,
+   "beds": 2,
+   "baths": 2,
+   "parking": 1,
+   "furnished": "semi",
+   "description": "Corner unit facing the Makati CBD skyline; seller covers CTSA.",
+   "features": [
+    "balcony",
+    "pool",
+    "gym"
+   ],
+   "source": "broker",
+   "freshDays": 0,
+   "verified": true,
+   "priceMin": 22500000,
+   "priceMax": 24000000,
+   "url": "https://www.ayalaprimetower.example/unit/2201",
+   "geoPrecision": "exact",
+   "dues": 3800,
+   "floor": 18,
+   "yearBuilt": 2021,
+   "turnover": "rfo",
+   "advanceMonths": 0,
+   "depositMonths": 1,
+   "agent": "Miguel Santos",
+   "brokerType": "broker"
+  },
+  {
+   "id": "broker-brk-pas-002",
+   "name": "Studio Unit at Capitol Commons",
+   "city": "Pasig",
+   "region": "ncr",
+   "address": "",
+   "lat": 14.5825,
+   "lng": 121.0607,
+   "type": "condo",
+   "tenure": "rent",
+   "price": 38000,
+   "sqm": 32,
+   "beds": 1,
+   "baths": 1,
+   "parking": 0,
+   "furnished": "fully",
+   "description": "Fully-furnished walk-up distance to Estancia; pets allowed up to 10kg.",
+   "features": [
+    "gym",
+    "pet-friendly"
+   ],
+   "source": "broker",
+   "freshDays": 0,
+   "verified": true,
+   "priceMin": 0,
+   "priceMax": 0,
+   "url": "",
+   "geoPrecision": "exact",
+   "dues": 5200,
+   "floor": 7,
+   "yearBuilt": 2023,
+   "turnover": "rfo",
+   "advanceMonths": 2,
+   "depositMonths": 1,
+   "agent": "Ana Reyes",
+   "brokerType": "broker"
+  },
+  {
+   "id": "broker-brk-ceb-003",
+   "name": "4BR House and Lot in Talisay",
+   "city": "Cebu",
+   "region": "visayas",
+   "address": "",
+   "lat": 10.2471,
+   "lng": 123.8478,
+   "type": "house",
+   "tenure": "sale",
+   "price": 12400000,
+   "sqm": 145,
+   "beds": 4,
+   "baths": 3,
+   "parking": 2,
+   "furnished": "bare",
+   "description": "Two-storey family home with carport and back garden; clean title.",
+   "features": [
+    "gated",
+    "garden"
+   ],
+   "source": "broker",
+   "freshDays": 0,
+   "verified": true,
+   "priceMin": 0,
+   "priceMax": 0,
+   "url": "",
+   "geoPrecision": "exact",
+   "dues": 0,
+   "floor": 0,
+   "yearBuilt": 2018,
+   "turnover": "rfo",
+   "advanceMonths": 0,
+   "depositMonths": 1,
+   "agent": "Carlo Villamor",
+   "brokerType": "broker"
+  },
+  {
+   "id": "broker-brk-dav-004",
+   "name": "Lot for Sale near Davao Airport",
+   "city": "Davao",
+   "region": "mindanao",
+   "address": "",
+   "lat": 7.1253,
+   "lng": 125.46,
+   "type": "lot",
+   "tenure": "sale",
+   "price": 2550000,
+   "sqm": 300,
+   "beds": 0,
+   "baths": 0,
+   "parking": 0,
+   "furnished": "bare",
+   "description": "300sqm corner lot in a gated subdivision; 5 mins to the airport.",
+   "features": [
+    "road-access"
+   ],
+   "source": "broker",
+   "freshDays": 0,
+   "verified": true,
+   "priceMin": 0,
+   "priceMax": 0,
+   "url": "",
+   "geoPrecision": "exact",
+   "dues": 0,
+   "floor": 0,
+   "yearBuilt": 0,
+   "advanceMonths": 0,
+   "depositMonths": 0,
+   "agent": "Lorna Diaz",
+   "brokerType": "broker"
+  },
+  {
+   "id": "broker-brk-tag-005",
+   "name": "Preselling Studio at Parklinks North",
+   "city": "Taguig",
+   "region": "ncr",
+   "address": "",
+   "lat": 14.5951,
+   "lng": 121.0804,
+   "type": "condo",
+   "tenure": "sale",
+   "price": 6800000,
+   "sqm": 27,
+   "beds": 1,
+   "baths": 1,
+   "parking": 0,
+   "furnished": "bare",
+   "description": "Early-bird pricing; 10% DP to move in, balance via bank financing.",
+   "features": [
+    "balcony",
+    "gym",
+    "pool"
+   ],
+   "source": "broker",
+   "freshDays": 0,
+   "verified": false,
+   "priceMin": 6500000,
+   "priceMax": 7100000,
+   "url": "",
+   "geoPrecision": "exact",
+   "dues": 0,
+   "floor": 11,
+   "yearBuilt": 2026,
+   "turnover": "preselling",
+   "advanceMonths": 0,
+   "depositMonths": 1,
+   "agent": "Rico Mendoza",
+   "brokerType": "broker"
+  },
+  {
+   "id": "broker-brk-qc-006",
+   "name": "3BR House for Rent in Blue Ridge",
+   "city": "Quezon City",
+   "region": "ncr",
+   "address": "",
+   "lat": 14.628,
+   "lng": 121.087,
+   "type": "house",
+   "tenure": "rent",
+   "price": 65000,
+   "sqm": 180,
+   "beds": 3,
+   "baths": 2,
+   "parking": 2,
+   "furnished": "semi",
+   "description": "Semi-furnished family home with a yard; near Katipunan schools.",
+   "features": [
+    "gated",
+    "pet-friendly",
+    "garden"
+   ],
+   "source": "broker",
+   "freshDays": 0,
+   "verified": true,
+   "priceMin": 0,
+   "priceMax": 0,
+   "url": "",
+   "geoPrecision": "exact",
+   "dues": 0,
+   "floor": 0,
+   "yearBuilt": 2005,
+   "turnover": "rfo",
+   "advanceMonths": 1,
+   "depositMonths": 2,
+   "agent": "Tina Navarro",
+   "brokerType": "broker"
+  }
+ ]
 }
