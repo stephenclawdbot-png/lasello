@@ -1,6 +1,7 @@
+import { useState } from "react";
 import type { ListingType } from "../data/listings";
 import type { SourceKey } from "../data/sources";
-import { SOURCE_LIST } from "../data/sources";
+import { CATEGORY_LABELS, CATEGORY_ORDER, SOURCE_LIST } from "../data/sources";
 import { priceBuckets } from "../lib/price";
 
 export type SortKey = "fresh" | "price-asc" | "price-desc" | "psqm-asc" | "complete";
@@ -48,6 +49,7 @@ export default function FilterBar({
   state: FilterState;
   setState: (s: FilterState) => void;
 }) {
+  const [srcOpen, setSrcOpen] = useState(false);
   return (
     <div className="filterbar">
       <div className="seg">
@@ -100,16 +102,46 @@ export default function FilterBar({
 
       <div className="filterbar-divider" />
 
-      {SOURCE_LIST.map((s) => (
+      <div className="src-dd">
         <button
-          key={s.key}
-          className={`f-chip ${state.sources.has(s.key) ? "on" : ""}`}
-          onClick={() => setState({ ...state, sources: toggleIn(state.sources, s.key) })}
+          className={`f-chip ${state.sources.size > 0 ? "on" : ""}`}
+          onClick={() => setSrcOpen(!srcOpen)}
         >
-          <span className="dot" style={{ background: s.color }} />
-          {s.name}
+          {state.sources.size > 0 ? `Platforms · ${state.sources.size}` : `All ${SOURCE_LIST.length} platforms`} ▾
         </button>
-      ))}
+        {srcOpen && (
+          <>
+            <div className="src-backdrop" onClick={() => setSrcOpen(false)} />
+            <div className="src-panel">
+              <p className="src-panel-head">
+                {SOURCE_LIST.length} listing platforms in one search
+              </p>
+              {CATEGORY_ORDER.map((cat) => (
+                <div key={cat} className="src-cat">
+                  <p className="src-cat-label">{CATEGORY_LABELS[cat]}</p>
+                  <div className="src-panel-grid">
+                    {SOURCE_LIST.filter((s) => s.category === cat).map((s) => (
+                      <button
+                        key={s.key}
+                        className={`f-chip ${state.sources.has(s.key) ? "on" : ""}`}
+                        onClick={() => setState({ ...state, sources: toggleIn(state.sources, s.key) })}
+                      >
+                        <span className="dot" style={{ background: s.color }} />
+                        {s.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {state.sources.size > 0 && (
+                <button className="src-clear" onClick={() => setState({ ...state, sources: new Set() })}>
+                  Clear — show all platforms
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

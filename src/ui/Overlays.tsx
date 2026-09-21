@@ -1,5 +1,6 @@
 import type { Feed } from "../lib/live";
 import { agoLabel } from "../lib/live";
+import { SOURCE_LIST } from "../data/sources";
 import { TIER_COLORS } from "../lib/stats";
 import { LogoMark, SearchIcon } from "./icons";
 
@@ -32,6 +33,9 @@ export function Header({
       </div>
 
       <div className="header-meta">
+        <span className="sync-badge" title={SOURCE_LIST.map((s) => s.name).join(" · ")}>
+          {SOURCE_LIST.length} platforms in one search
+        </span>
         <span className="sync-badge" title={feed.demo ? "Showing curated demo data until live portal sync is enabled" : "Aggregated feed from portal connectors"}>
           <span className={`sync-dot ${feed.demo ? "demo" : ""}`} />
           {feed.demo ? "Demo preview" : agoLabel(feed.generatedAt)}
@@ -62,8 +66,8 @@ export function Disclaimer({ feed }: { feed: Feed }) {
   return (
     <p className="disclaimer">
       {feed.demo
-        ? "You're viewing a curated preview with market-plausible prices. Live portal sync is rolling out — every listing will always link back to its original portal."
-        : `Aggregated from ${live.length} portal${live.length === 1 ? "" : "s"}, ${agoLabel(feed.generatedAt)}. `}
+        ? `One search across ${SOURCE_LIST.length} Philippine listing platforms — property portals, developer pre-selling, bank foreclosures, brokerages and classifieds. You're viewing a realistic demo inventory with market-calibrated prices — live platform sync is rolling out.`
+        : `Aggregated from ${live.length} of ${SOURCE_LIST.length} connected platform${live.length === 1 ? "" : "s"}, ${agoLabel(feed.generatedAt)}. `}
       {" "}Lasello never copies listings — we show the honest ₱/m² math and send you to the source.
     </p>
   );

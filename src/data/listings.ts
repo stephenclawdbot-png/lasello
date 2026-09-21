@@ -1,4 +1,5 @@
 import type { SourceKey } from "./sources";
+import { generateListings } from "./generate";
 
 export type ListingType = "condo" | "house" | "lot" | "land";
 export type Tenure = "sale" | "rent";
@@ -76,7 +77,7 @@ interface Details {
 }
 
 /**
- * DEMO SEED — ~61 listings hand-curated across 30+ PH cities for launch UX.
+ * DEMO SEED — ~78 listings hand-curated across 30+ PH cities for launch UX.
  * Prices are illustrative market-plausible values, NOT live scraped data.
  * Each row carries `source` so the UI can deep-link to the source portal's
  * search for that city (templates in sources.ts). Real ingestion replaces
@@ -208,9 +209,44 @@ const rows: Array<
     { addr: "Real St, Tacloban", park: 1, furn: "bare", desc: "3-bedroom along Real Street, rebuilt post-Yolanda with reinforced roofing.", feat: ["Reinforced roofing", "City center", "1-car garage", "Near schools"] }],
   ["Magsaysay Condo", "Naga", "Camarines Sur", 13.621, 123.193, "condo", "sale", 4600000, 42, 1, 1, "zipmatch", 47, false,
     { addr: "Magsaysay Ave, Naga", park: 0, furn: "semi", desc: "1-bedroom on Naga's restaurant avenue, near Ateneo de Naga and CBD offices.", feat: ["Restaurant avenue", "Near Ateneo de Naga", "Elevator building", "Study nook"] }],
+  ["Vertis North 2BR", "Quezon City", "Metro Manila", 14.654, 121.033, "condo", "sale", 13500000, 60, 2, 2, "onepropertee", 8, false,
+    { addr: "Vertis North, Brgy. Bagong Pag-asa", park: 1, furn: "semi", desc: "2-bedroom in Vertis North above the TriNoma-Ayala corridor, beside the future MRT-7 interchange.", feat: ["Mall-connected", "1 parking slot", "Near MRT interchange", "Sky garden"] }],
+  ["Lancaster New City House", "Imus", "Cavite", 14.42, 120.94, "house", "sale", 4800000, 100, 3, 2, "onepropertee", 12, false,
+    { addr: "Lancaster New City, Brgy. Alapan", park: 1, furn: "bare", desc: "Affordable 3-bedroom in a master-planned Cavite township with its own church, school and shuttle to Manila.", feat: ["Township amenities", "1-car garage", "Shuttle service", "Near CAVITEX"] }],
+  ["Esplanade Townhouse", "Iloilo City", "Western Visayas", 10.702, 122.545, "house", "sale", 8900000, 120, 3, 2, "onepropertee", 30, false,
+    { addr: "Near Iloilo River Esplanade", park: 1, furn: "bare", desc: "3-bedroom townhouse a short walk from the Iloilo Esplanade jogging path and riverside cafés.", feat: ["Near Esplanade", "1-car garage", "Bike-friendly area", "Flood-managed zone"] }],
+  ["Eastwood City 1BR", "Quezon City", "Metro Manila", 14.61, 121.08, "condo", "sale", 7800000, 40, 1, 1, "myproperty", 19, false,
+    { addr: "Eastwood City, Bagumbayan", park: 0, furn: "fully", desc: "Furnished 1-bedroom in Eastwood City's 24/7 BPO hub — reliable tenant pipeline year-round.", feat: ["Fully furnished", "24/7 district", "Mall below", "High rental demand"] }],
+  ["Cebu Business Park 2BR", "Cebu City", "Central Visayas", 10.318, 123.905, "condo", "sale", 14500000, 75, 2, 2, "myproperty", 7, true,
+    { addr: "Mindanao Ave, Cebu Business Park", park: 1, furn: "semi", desc: "2-bedroom beside Ayala Center Cebu with garden-city views over the business park.", feat: ["Beside Ayala Center", "1 parking slot", "Park view", "Verified developer unit"] }],
+  ["Ecoland House", "Davao City", "Davao", 7.052, 125.599, "house", "sale", 8400000, 180, 3, 2, "myproperty", 26, false,
+    { addr: "Ecoland Subdivision, Matina", park: 2, furn: "bare", desc: "3-bedroom in established Ecoland, minutes from SM Ecoland and the airport road.", feat: ["Established subdivision", "2-car garage", "Near SM Ecoland", "Corner lot"] }],
+  ["Rockwell Proscenium 2BR", "Makati", "Metro Manila", 14.565, 121.037, "condo", "sale", 32000000, 110, 2, 2, "hoppler", 9, true,
+    { addr: "Estrella St, Rockwell Center", park: 2, furn: "semi", desc: "Broker-verified 2-bedroom in Rockwell Center with Power Plant Mall privileges and river-side views.", feat: ["Rockwell address", "2 parking slots", "Concierge", "Broker-verified"] }],
+  ["Greenhills Townhouse", "San Juan", "Metro Manila", 14.601, 121.048, "house", "sale", 25000000, 240, 4, 4, "hoppler", 21, false,
+    { addr: "Near Greenhills Shopping Center", park: 2, furn: "bare", desc: "4-bedroom townhouse in a gated Greenhills compound, walking distance to shops and schools.", feat: ["Gated compound", "2-car garage", "Near Greenhills mall", "Newly renovated baths"] }],
+  ["Ortigas 1BR (for rent)", "Pasig", "Metro Manila", 14.586, 121.061, "condo", "rent", 38000, 36, 1, 1, "hoppler", 5, false,
+    { addr: "ADB Ave, Ortigas Center", park: 0, furn: "fully", desc: "Furnished 1-bedroom in Ortigas Center, managed by a licensed broker with e-signing lease.", feat: ["Fully furnished", "Licensed broker", "Near Megamall", "Flexible terms"] }],
+  ["Mandaue Family House", "Mandaue", "Central Visayas", 10.343, 123.933, "house", "sale", 9500000, 160, 3, 2, "filipinohomes", 17, false,
+    { addr: "Brgy. Basak, Mandaue", park: 1, furn: "bare", desc: "3-bedroom between Cebu City and the airport bridge — practical base for Mactan commuters.", feat: ["Near airport bridge", "1-car garage", "Quiet street", "Water tank"] }],
+  ["Moalboal Beach Lot", "Moalboal", "Central Visayas", 9.94, 123.39, "land", "sale", 4200000, 500, 0, 0, "filipinohomes", 55, false,
+    { addr: "Coastal road, Moalboal", park: 0, furn: "bare", desc: "500 m² lot minutes from Panagsama Beach and the sardine run — dive-resort country.", feat: ["Near dive spots", "Clean title", "Coastal road access", "Tourism zoning"] }],
+  ["Dauis Residential Lot", "Dauis", "Bohol", 9.626, 123.866, "lot", "sale", 3100000, 300, 0, 0, "filipinohomes", 44, false,
+    { addr: "Brgy. Biking, Dauis, Panglao Island", park: 0, furn: "bare", desc: "300 m² lot on the Panglao side of the bridge, ten minutes from the new international airport.", feat: ["Near Panglao airport", "Level lot", "Clean title", "Power & water nearby"] }],
+  ["Makati CBD Studio (for rent)", "Makati", "Metro Manila", 14.556, 121.023, "condo", "rent", 28000, 26, 1, 1, "rentph", 6, false,
+    { addr: "Dela Rosa St, Legazpi Village", park: 0, furn: "fully", desc: "Compact furnished studio on the Dela Rosa walkway network — dry walk to most Makati CBD towers.", feat: ["Fully furnished", "Covered walkway access", "Gym", "Near supermarket"] }],
+  ["Alabang 2BR (for rent)", "Muntinlupa", "Metro Manila", 14.425, 121.035, "condo", "rent", 55000, 58, 2, 2, "rentph", 11, false,
+    { addr: "Madrigal Business Park, Alabang", park: 1, furn: "semi", desc: "2-bedroom rental in Madrigal Business Park with parking, near ATC and international schools.", feat: ["1 parking slot", "Near Alabang Town Center", "Family-friendly", "Balcony"] }],
+  ["IT Park 2BR (for rent)", "Cebu City", "Central Visayas", 10.328, 123.906, "condo", "rent", 55000, 55, 2, 2, "rentph", 8, false,
+    { addr: "Cebu IT Park, Brgy. Apas", park: 1, furn: "fully", desc: "Furnished 2-bedroom inside IT Park for sharers or a small family, walking distance to offices.", feat: ["Fully furnished", "1 parking slot", "Pool & gym", "24/7 district"] }],
+  ["Shore Residences 1BR", "Pasay", "Metro Manila", 14.532, 120.982, "condo", "sale", 6900000, 32, 1, 1, "ohmyhome", 14, false,
+    { addr: "Seaside Blvd, Mall of Asia Complex", park: 0, furn: "semi", desc: "1-bedroom in the MOA complex — resort-style amenities and bay-area events at your doorstep.", feat: ["MOA complex", "Resort amenities", "Near airport", "Rental-ready"] }],
+  ["Molino Starter House", "Bacoor", "Cavite", 14.39, 120.97, "house", "sale", 5600000, 110, 3, 2, "ohmyhome", 23, false,
+    { addr: "Molino Blvd, Bacoor", park: 1, furn: "bare", desc: "3-bedroom starter home off Molino Boulevard, fixed-fee brokerage with paperwork assistance.", feat: ["Fixed-fee brokerage", "1-car garage", "Near Molino Blvd", "Paperwork assistance"] }],
 ];
 
-export const LISTINGS: Listing[] = rows.map((r, i) => ({
+/** Hand-curated anchor listings (fully written by hand, one per row above). */
+export const CURATED: Listing[] = rows.map((r, i) => ({
   id: `${r[1].toLowerCase().replace(/[^a-z]+/g, "-")}-${i}`,
   name: r[0],
   city: r[1],
@@ -232,6 +268,9 @@ export const LISTINGS: Listing[] = rows.map((r, i) => ({
   freshDays: r[12],
   verified: r[13],
 }));
+
+/** Full demo inventory: curated anchors + deterministic market-scale generator. */
+export const LISTINGS: Listing[] = [...CURATED, ...generateListings()];
 
 export const TYPE_LABELS: Record<ListingType, string> = {
   condo: "Condo",

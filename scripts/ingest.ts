@@ -84,9 +84,12 @@ async function main() {
     }
   }
 
+  // With zero live rows the feed stays empty: the client rejects an empty
+  // feed and falls back to the bundled demo inventory (curated + generated,
+  // see src/data/listings.ts), so we never commit megabytes of demo JSON.
   const demo = live.length === 0;
   // Cross-source dedupe + outlier flags over the full merged set.
-  let listings: Listing[] = demo ? LISTINGS : [];
+  let listings: Listing[] = [];
   if (!demo) {
     const merged = dedupe(live);
     const dupesCollapsed = live.length - merged.length;
@@ -105,7 +108,7 @@ async function main() {
   await mkdir(dirname(OUT), { recursive: true });
   await writeFile(OUT, JSON.stringify(feed, null, 1));
   console.log(
-    `\nwrote ${feed.listings.length} listings (${demo ? "DEMO seed — no live sources configured" : "live"}, ${flagged} flagged as price outliers) → ${OUT}`
+    `\nwrote ${feed.listings.length} live listings (${demo ? `demo mode — client falls back to the bundled ${LISTINGS.length}-listing demo inventory` : "live"}, ${flagged} flagged as price outliers) → ${OUT}`
   );
 }
 

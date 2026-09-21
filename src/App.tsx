@@ -5,7 +5,7 @@ import Panel from "./ui/Panel";
 import ListingCard from "./ui/ListingCard";
 import { Header, Legend, Disclaimer } from "./ui/Overlays";
 import { perSqm, type Listing } from "./data/listings";
-import { cityMedians } from "./lib/stats";
+import { cityMedians, medianKey } from "./lib/stats";
 import { withinCap, completenessOf } from "./lib/price";
 import { useFeed } from "./lib/live";
 import { loadPhilippines, type Island } from "./lib/geo";
@@ -48,8 +48,14 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [everSelected, setEverSelected] = useState(false);
   const [view, setView] = useState<"list" | "map">("list");
+  const [shown, setShown] = useState(60);
   const feed = useFeed();
   const listings = feed.listings;
+
+  const updateFilters = (f: FilterState) => {
+    setFilters(f);
+    setShown(60);
+  };
 
   useEffect(() => {
     loadPhilippines()
@@ -82,8 +88,8 @@ export default function App() {
 
   return (
     <div className={`site ${view === "map" ? "view-map" : ""}`}>
-      <Header q={filters.q} onSearch={(q) => setFilters({ ...filters, q })} feed={feed} />
-      <FilterBar state={filters} setState={setFilters} />
+      <Header q={filters.q} onSearch={(q) => updateFilters({ ...filters, q })} feed={feed} />
+      <FilterBar state={filters} setState={updateFilters} />
 
       <div className="content">
         <section className="results">
@@ -93,7 +99,7 @@ export default function App() {
             <select
               className="f-select results-sort"
               value={filters.sort}
-              onChange={(e) => setFilters({ ...filters, sort: e.target.value as SortKey })}
+              onChange={(e) => updateFilters({ ...filters, sort: e.target.value as SortKey })}
               aria-label="Sort listings"
             >
               <option value="fresh">Newest first</option>
@@ -110,17 +116,24 @@ export default function App() {
               Try widening the price range or clearing a filter.
             </div>
           ) : (
-            <div className="card-grid">
-              {visible.map((l) => (
-                <ListingCard
-                  key={l.id}
-                  listing={l}
-                  cityMedian={medians.get(l.city)?.[l.tenure]}
-                  selected={l.id === selectedId}
-                  onSelect={onSelect}
-                />
-              ))}
-            </div>
+            <>
+              <div className="card-grid">
+                {visible.slice(0, shown).map((l) => (
+                  <ListingCard
+                    key={l.id}
+                    listing={l}
+                    cityMedian={medians.get(medianKey(l))}
+                    selected={l.id === selectedId}
+                    onSelect={onSelect}
+                  />
+                ))}
+              </div>
+              {visible.length > shown && (
+                <button className="load-more" onClick={() => setShown(shown + 60)}>
+                  Show more — {(visible.length - shown).toLocaleString("en-PH")} remaining
+                </button>
+              )}
+            </>
           )}
 
           <Disclaimer feed={feed} />
@@ -141,7 +154,7 @@ export default function App() {
         {selected && (
           <Panel
             listing={selected}
-            cityMedian={medians.get(selected.city)?.[selected.tenure]}
+            cityMedian={medians.get(medianKey(selected))}
             onClose={() => setSelectedId(null)}
           />
         )}

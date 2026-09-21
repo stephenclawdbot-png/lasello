@@ -114,6 +114,52 @@ button {
   cursor: pointer;
 }
 
+.map2d-cluster {
+  cursor: pointer;
+}
+
+.map2d-cluster-halo {
+  fill: rgba(15, 118, 110, 0.22);
+}
+
+.map2d-cluster-core {
+  fill: var(--brand);
+  stroke: #ffffff;
+  stroke-width: 2;
+}
+
+.map2d-cluster:hover .map2d-cluster-core {
+  fill: var(--brand-dark);
+}
+
+.map2d-cluster-count {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  fill: #ffffff;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.load-more {
+  display: block;
+  margin: 18px auto 0;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.load-more:hover {
+  border-color: var(--brand);
+  color: var(--brand-dark);
+}
+
 .map2d-ring {
   fill: none;
   stroke-width: 2;
@@ -401,6 +447,75 @@ button {
   height: 22px;
   background: var(--line);
   flex-shrink: 0;
+}
+
+/* sources dropdown */
+.src-dd {
+  flex-shrink: 0;
+}
+
+.src-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 48;
+}
+
+.src-panel {
+  position: fixed;
+  top: 112px;
+  left: 20px;
+  z-index: 49;
+  width: min(620px, calc(100vw - 40px));
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  padding: 14px;
+}
+
+.src-panel-head {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+
+.src-cat + .src-cat {
+  margin-top: 12px;
+}
+
+.src-cat-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+  margin: 0 0 6px;
+}
+
+.src-panel-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.src-clear {
+  margin-top: 12px;
+  width: 100%;
+  border: none;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.src-clear:hover {
+  color: var(--ink);
 }
 
 /* ================= results list ================= */
