@@ -1,4 +1,5 @@
 export type SourceKey =
+  | "broker"
   | "lamudi"
   | "property24"
   | "dotproperty"
@@ -19,6 +20,12 @@ export interface Source {
 const enc = encodeURIComponent;
 
 export const SOURCES: Record<SourceKey, Source> = {
+  broker: {
+    key: "broker",
+    name: "Broker Direct",
+    color: "#0F766E",
+    link: (q) => `https://lasello-meowdotfun.vercel.app/#submit?find=${enc(q)}`,
+  },
   lamudi: {
     key: "lamudi",
     name: "Lamudi",

@@ -102,9 +102,10 @@ function brokerOf(v: unknown): "owner" | "broker" | "developer" | undefined {
 
 export function defaultMapRow(row: Record<string, unknown>, source: SourceKey): RawListing | null {
   const externalId = str(row.externalId ?? row.id ?? row.listing_id);
-  const url = str(row.url ?? row.link ?? row.permalink);
   const title = str(row.title ?? row.name ?? row.headline);
-  if (!externalId || !url || !title) return null;
+  // URL is optional here; normalize() still requires it for portal sources.
+  if (!externalId || !title) return null;
+  const url = str(row.url ?? row.link ?? row.listing_url);
   const tenureRaw = str(row.tenure ?? row.offer_type)?.toLowerCase();
   const typeRaw = str(row.type ?? row.property_type)?.toLowerCase();
   const type: ListingType | undefined =
@@ -125,7 +126,7 @@ export function defaultMapRow(row: Record<string, unknown>, source: SourceKey): 
   return {
     externalId,
     source,
-    url,
+    url: url ?? "",
     title,
     city: str(row.city),
     region: str(row.region ?? row.province),

@@ -1,22 +1,61 @@
 # Lasello — Ingestion Layer
 
-The website itself **does not scrape anything**. Every listing on the map comes
-from this folder's pipeline, which is the only place real data is allowed in.
+Lasello is an **internal platform**: supply is **broker-direct first**, portal
+connectors are fallbacks. The pipeline in this folder is the only place real
+data is allowed in.
 
 ```
-internet ──> SourceAdapter.fetchListings() ──> normalize() ──> dedupe() ──> public/data/listings.json ──> useFeed() polls
+broker CSV/JSON in data/imports/ ──┐
+LASELLO_FEED_BROKER (hosted feed) ─┤─> SourceAdapter.fetchListings() ──> normalize() ──> dedupe() ──> public/data/listings.json ──> useFeed() polls
+LASELLO_FEED_<PORTAL> (optional) ──┘
 ```
+
+## Broker-direct imports (primary supply)
+
+`sources/broker.ts` reads, in order:
+
+1. **Hosted feed** — JSON at `LASELLO_FEED_BROKER` (array or `{listings:[...]}`).
+2. **Local imports** — every `data/imports/*.json` / `*.csv` (files starting
+   with `_` are ignored, e.g. templates).
+
+Nothing is scraped — these are rows the broker members themselves provide.
+
+**Workflow:** a broker sends their inventory (spreadsheet export is fine) →
+save it as `data/imports/<broker-name>.csv` → `npm run ingest` → commit.
+
+**CSV schema** (header row, lowercased, underscores; extras ignored):
+
+| Column | Required | Notes |
+|---|---|---|
+| `id` | no (auto: `file#row`) | stable external id |
+| `title` | **yes** | |
+| `city` | yes* | must match a known city or row needs `lat`+`lng` |
+| `price` (or `price_min`+`price_max`) | **yes** | PHP total (sale) or ₱/mo (rent) |
+| `sqm` | **yes** | floor area; lots may use `lot_area` |
+| `region`,`type`,`tenure` | no | type: condo/house/townhouse/lot/land; tenure: sale/rent |
+| `beds`,`baths`,`parking`,`furnished`,`features`,`dues`,`floor`,`year_built`,`turnover`,`advance_months`,`deposit_months` | no | `features` = `;`-separated |
+| `agent`,`listed_by` | no | `listed_by`: owner/broker/developer |
+| `verified` | no | `true`/`1` flags the row |
+| `url` | no | optional for broker rows — omit it and the panel shows "Direct from broker" |
+| `address`,`lat`,`lng`,`description` | no | exact pin beats city-centre fallback |
+
+`data/imports/sample.csv` is a working example — `npm run ingest` picks it up
+until real broker files replace it.
+
+## Portal connectors (fallback)
 
 One connector per portal lives in `sources/`. Each pulls from a **configured
 feed** (partner API, licensed feed, or agreed export) set via env:
 `LASELLO_FEED_<SOURCEKEY>` (repo secrets feed the scheduled workflow).
+Portal rows **must** carry a `url` (deep-link rule); broker rows may not.
 `npm run ingest` runs them all; `.github/workflows/ingest.yml` does it every
 6 hours and commits the feed, which the deployed site re-polls every 5 min.
 
 ## Rules (non-negotiable)
 
-1. **Deep-link + attribute.** Every listing carries a direct `url` to the source
-   portal. We never copy listing bodies/photos; we show metadata + a link.
+1. **Attribute.** Portal listings carry a direct `url` to the source portal —
+   we never copy listing bodies/photos. Broker-direct rows may omit `url`
+   (the broker member is the provenance; the panel says "Direct from broker").
 2. **Respect robots.txt and portal ToS.** If a portal disallows scraping
    (Lamudi currently does), the adapter may only run with a partner API / agreed
    feed / official export. Stubs stay stubs.
@@ -53,9 +92,9 @@ feed** (partner API, licensed feed, or agreed export) set via env:
 | 0 (done) | 7 seed sources | hand-curated demo rows in `src/data/listings.ts` |
 | 1 | ZipMatch, Carousell, FB Marketplace groups | per-source adapters with ToS review; FB via official marketplace search only |
 | 2 | Lamudi, Property24 | partner API or data-licensing conversation |
-| 3 | Broker/agent submissions | "list your property, get a verified pin" funnel — the honest flywheel |
+| 3 (current) | Broker/agent submissions | broker-direct CSV/JSON imports in `data/imports/` + hosted `LASELLO_FEED_BROKER` |
 | 4 | LGHL/registry price checks | public land-registry data to validate asking prices |
 
-The end state: sellers/brokers submit listings directly (verified pin), portals
-are linked as receipts, and the map is the cheapest place to sanity-check any
-PH property price per square meter.
+The end state: the broker network centralizes its inventory here (verified
+rows, complete data), portals are linked as receipts, and the map is the
+cheapest place to sanity-check any PH property price per square meter.

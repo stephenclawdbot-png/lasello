@@ -3,6 +3,22 @@
 > **For incoming agents.** Read this top-to-bottom before touching anything.
 > Repo: https://github.com/stephenclawdbot-png/lasello · Live: (see Vercel URL in repo README/deploy log)
 
+## 0. Mode: PRIVATE / INTERNAL
+
+Lasello is a **private internal platform**, not a public marketplace. Its
+users are the owner's broker network (PH real-estate brokers) centralizing
+their own listings in one place to show capability. Consequences:
+
+- **Supply = broker-direct.** The primary source is `broker`
+  (`adapters/sources/broker.ts`): CSV/JSON files in `data/imports/` or a
+  hosted JSON feed at `LASELLO_FEED_BROKER`. Broker rows may omit `url` —
+  the broker member is the provenance. Portal connectors stay as
+  configured-feed-only fallbacks; scraping is still off the table.
+- Don't add public growth features (SEO, share widgets, signup funnels).
+  Broker-submission workflow: drop a file in `data/imports/`, run
+  `npm run ingest`, commit. The detail panel shows "Direct from broker" when
+  a row has no external URL.
+
 ## 1. What Lasello is
 
 A **Philippines-wide real estate aggregator**: a clean, light marketplace UI
@@ -110,19 +126,26 @@ portal connector → normalize() → [per-source] → merge → dedupe(cross-sou
 ```
 
 - One connector per portal in `adapters/sources/*.ts`, all implementing
-  `SourceAdapter` (`adapters/contract.ts`).
+  `SourceAdapter` (`adapters/contract.ts`), plus the **broker-direct source**
+  (registered first in `adapters/sources/index.ts`).
+- **Broker-direct (`broker`)**: reads `data/imports/*.json|*.csv` (files
+  starting with `_` ignored, e.g. templates) or a hosted JSON feed at
+  `LASELLO_FEED_BROKER`. See `adapters/README.md` for the row schema and the
+  broker-submission workflow.
 - `normalize()` accepts price ranges (min/max → midpoint), maps furnished /
   parking / features / dues / floor / year-built / turnover / rent terms /
   agent / listed-at, geocodes missing pins from the PH city-centre table
   (`adapters/geo.ts`, sets `geoPrecision: "city"`), and drops rows with a
   logged reason: missing-url-or-title, missing-price, missing-sqm,
-  invalid-price, unmappable-city.
-- Connectors run from **configured feeds only** (`LASELLO_FEED_<SOURCE>` env /
-  repo secret → partner API, licensed feed, or agreed export). Robots checks
-  (2025-09): Lamudi 403s bots at the CDN, Carousell disallows query URLs,
-  Rentpad publishes content-signal restrictions — **the deployed site never
-  scrapes, and we don't ship ToS-breaking scrapers.** A connector without a
-  feed reports `pending`; an erroring one keeps its previous rows (stale-safe).
+  invalid-price, unmappable-city. Portal rows still require a `url`; broker
+  rows don't.
+- Portal connectors run from **configured feeds only**
+  (`LASELLO_FEED_<SOURCE>` env / repo secret → partner API, licensed feed, or
+  agreed export). Robots checks (2025-09): Lamudi 403s bots at the CDN,
+  Carousell disallows query URLs, Rentpad publishes content-signal
+  restrictions — **we never scrape, and we don't ship ToS-breaking
+  scrapers.** A connector without a feed reports `pending`; an erroring one
+  keeps its previous rows (stale-safe).
 - `npm run ingest` writes the feed; the GitHub Action runs it every 6 hours
   and commits changes (Vercel redeploys); the client re-polls every 5 minutes.
   Net effect: near-real-time updates end to end once feeds are configured.
@@ -138,15 +161,17 @@ the scheduled feed commits become live data.
 
 ## 7. Open tasks for agents (grab in order)
 
-- **P0 · Feed deals:** get at least one real feed configured (broker exports
-  count — see Phase 3); everything downstream already works.
+- **P0 · Broker imports:** collect CSV/JSON exports from the broker network
+  and drop them into `data/imports/` (schema in `adapters/README.md`); run
+  `npm run ingest` and commit. This is the whole supply side now.
+- **P1 · Broker submit form:** `/submit` route that generates a validated
+  structured row (JSON) a broker can paste into a CSV/PR.
 - **P1 · Listing photos:** thumbnails via the source's og:image with
   attribution (do not hotlink listing galleries).
 - **P1 · Saved searches / alerts:** email or Telegram bot for price drops.
 - **P1 · Map clustering:** collapse overlapping Metro Manila pills at low zoom.
 - **P2 · Registry price layer:** overlay public assessed land values per
   region — killer differentiator.
-- **P2 · Broker submissions:** verified-pin funnel (Phase 3 flywheel).
 
 ## 8. Conventions & gotchas
 
@@ -166,4 +191,7 @@ the scheduled feed commits become live data.
 - [x] Demo seed with complete listing details + deep-link templates
 - [x] Aggregation pipeline: connectors → ingest → feed → polling client
 - [x] Scheduled sync workflow (6-hourly)
-- [ ] Real feeds configured (P0 above) — the site is honest about this in the UI
+- [x] Broker-direct internal supply (`broker` source + `data/imports/` workflow)
+- [x] Sample broker import (`data/imports/sample.csv`) proving the pipeline
+- [ ] Broker network onboarding: real CSVs from the broker members (P0 above)
+- [ ] Portal feeds configured (fallback path only)

@@ -16,8 +16,10 @@ import { CITY_CENTERS } from "./geo";
 export interface RawListing {
   externalId: string;
   source: SourceKey;
-  /** Direct URL to the listing on the source portal. REQUIRED — we deep-link, never copy. */
-  url: string;
+  /** Direct URL to the listing on the source portal. Required for portal
+   *  sources — we deep-link, never copy. Optional for broker-direct rows
+   *  (source "broker"), where the broker member is the provenance. */
+  url?: string;
   title: string;
   city?: string;
   region?: string;
@@ -65,7 +67,7 @@ export type DropReason = "missing-url-or-title" | "missing-price" | "missing-sqm
 
 /** Normalize one raw row. Returns null (with reason) only for unusable rows. */
 export function normalize(raw: RawListing): { listing: Listing | null; reason?: DropReason } {
-  if (!raw.url || !raw.title) return { listing: null, reason: "missing-url-or-title" };
+  if (!raw.title || (!raw.url && raw.source !== "broker")) return { listing: null, reason: "missing-url-or-title" };
   if (raw.price == null && raw.priceMin == null) return { listing: null, reason: "missing-price" };
   if (!raw.sqm || raw.sqm <= 0) return { listing: null, reason: "missing-sqm" };
 

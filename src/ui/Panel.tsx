@@ -39,8 +39,6 @@ export default function Panel({
       ? `${fmtPeso(listing.priceMin, monthly)} – ${fmtPeso(listing.priceMax, monthly)}`
       : null;
 
-  const q = `${listing.city}, Philippines`;
-  const href = listing.url ?? src.link(q);
   return (
     <aside className="detail">
       <button className="detail-close" onClick={onClose} aria-label="Close">
@@ -184,11 +182,19 @@ export default function Panel({
         <span className="trust-pill">Via {src.name}</span>
       </div>
 
-      <a className="cta" href={href} target="_blank" rel="noopener noreferrer">
-        View on {listing.url ? src.name : `${src.name} (search)`} ↗
-      </a>
+      {listing.url ? (
+        <a className="cta" href={listing.url} target="_blank" rel="noopener noreferrer">
+          View on {src.name} ↗
+        </a>
+      ) : (
+        <span className="cta cta-direct">
+          Direct from broker{listing.agent ? ` — ${listing.agent}` : ""}
+        </span>
+      )}
       <p className="cta-note">
-        Lasello links you to the original portal — we never copy listings or hide the source.
+        {listing.url
+          ? "Lasello links you to the original portal — we never copy listings or hide the source."
+          : "Broker-direct listing on Lasello's private board — contact goes through your broker."}
       </p>
     </aside>
   );

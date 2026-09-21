@@ -911,6 +911,11 @@ button {
   background: var(--brand-dark);
 }
 
+.cta.cta-direct {
+  background: #e6f2ef;
+  color: var(--brand-dark);
+}
+
 .cta-note {
   text-align: center;
   font-size: 11.5px;
