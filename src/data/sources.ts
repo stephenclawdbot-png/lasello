@@ -5,7 +5,13 @@ export type SourceKey =
   | "rentpad"
   | "zipmatch"
   | "facebook"
-  | "carousell";
+  | "carousell"
+  | "onepropertee"
+  | "myproperty"
+  | "hoppler"
+  | "filipinohomes"
+  | "rentph"
+  | "ohmyhome";
 
 export interface Source {
   key: SourceKey;
@@ -60,6 +66,42 @@ export const SOURCES: Record<SourceKey, Source> = {
     name: "Carousell",
     color: "#F2A1B5",
     link: (q) => `https://www.carousell.com.ph/search/${enc(q)}`,
+  },
+  onepropertee: {
+    key: "onepropertee",
+    name: "OnePropertee",
+    color: "#2EAB6F",
+    link: (q) => `https://www.onepropertee.com/search?q=${enc(q)}`,
+  },
+  myproperty: {
+    key: "myproperty",
+    name: "MyProperty.ph",
+    color: "#F08C3C",
+    link: (q) => `https://www.myproperty.ph/results/?q=${enc(q)}`,
+  },
+  hoppler: {
+    key: "hoppler",
+    name: "Hoppler",
+    color: "#4C6FE7",
+    link: (q) => `https://www.hoppler.com.ph/search?query=${enc(q)}`,
+  },
+  filipinohomes: {
+    key: "filipinohomes",
+    name: "Filipino Homes",
+    color: "#D95336",
+    link: (q) => `https://filipinohomes.com/search?q=${enc(q)}`,
+  },
+  rentph: {
+    key: "rentph",
+    name: "Rent.ph",
+    color: "#8FBF3F",
+    link: (q) => `https://rent.ph/?s=${enc(q)}`,
+  },
+  ohmyhome: {
+    key: "ohmyhome",
+    name: "Ohmyhome",
+    color: "#E86FA4",
+    link: (q) => `https://ohmyhome.com/en-ph/search?q=${enc(q)}`,
   },
 };
 

@@ -396,6 +396,60 @@ button {
   flex-shrink: 0;
 }
 
+/* sources dropdown */
+.src-dd {
+  flex-shrink: 0;
+}
+
+.src-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 48;
+}
+
+.src-panel {
+  position: fixed;
+  top: 112px;
+  left: 20px;
+  z-index: 49;
+  width: min(560px, calc(100vw - 40px));
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  padding: 14px;
+}
+
+.src-panel-head {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+
+.src-panel-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.src-clear {
+  margin-top: 12px;
+  width: 100%;
+  border: none;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.src-clear:hover {
+  color: var(--ink);
+}
+
 /* ================= results list ================= */
 .results-head {
   display: flex;

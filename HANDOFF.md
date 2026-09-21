@@ -20,8 +20,9 @@ explicitly rejected by the owner ("looks like an OSINT site").
 
 - Primary user: **OFWs / balikbayans / remote investors** buying property
   sight-unseen. Secondary: local buyers drowning in duplicate/fake listings
-  across Lamudi, Property24, DotProperty, Rentpad, ZipMatch, Carousell, FB
-  Marketplace.
+  across the 13 covered platforms: Lamudi, Property24, DotProperty, Rentpad,
+  ZipMatch, Carousell, FB Marketplace, OnePropertee, MyProperty.ph, Hoppler,
+  Filipino Homes, Rent.ph, Ohmyhome.
 - The pain: PH portals fragment the market and don't let you compare **₱/m²**
   across them; FB listings are untrustworthy; remote buyers can't sanity-check
   prices.
@@ -50,7 +51,7 @@ npm run ingest   # run portal connectors → public/data/listings.json
 
 ```
 src/
-  data/listings.ts   DEMO seed (~61 listings, 30+ cities, complete details:
+  data/listings.ts   DEMO seed (~78 listings across 13 portals, 30+ cities, complete details:
                      address, description, features, parking, furnishing).
   data/sources.ts    Source registry: name, color, deep-link SEARCH templates.
   lib/geo.ts         topojson → PH island outlines (lat/lng rings).

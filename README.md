@@ -7,6 +7,9 @@ remote investors who buy sight-unseen and get burned by fragmented, duplicated,
 untrustworthy listings.
 
 - Clean marketplace UI: listing cards + a light interactive map of the archipelago
+- One search across **13 PH listing platforms**: Lamudi, Property24,
+  DotProperty, Rentpad, ZipMatch, Carousell, FB Marketplace, OnePropertee,
+  MyProperty.ph, Hoppler, Filipino Homes, Rent.ph, Ohmyhome
 - Listings across 30+ cities — Metro Manila, Cebu, Davao, Palawan, Baguio…
 - Normalized ₱/m² with "vs city median" honesty chips
 - Source receipts: every listing names its portal and links out to it
@@ -16,7 +19,7 @@ untrustworthy listings.
 
 ## Status
 
-**Demo seed** — ~61 hand-curated listings with complete details and
+**Demo seed** — ~78 hand-curated listings with complete details and
 market-plausible prices, clearly labeled in the UI. The connector pipeline
 (`/adapters`, `scripts/ingest.ts`, `.github/workflows/ingest.yml`) is wired
 end-to-end; each portal goes live the moment its feed URL
